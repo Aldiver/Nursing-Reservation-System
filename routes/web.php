@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\VenueController;
+use App\Http\Controllers\ReservationController;
 
 // routes/web.php
 
@@ -49,6 +50,13 @@ Route::group([
     Route::resource('departments', DepartmentController::class);
     Route::resource('venues', VenueController::class);
     Route::resource('users', UserController::class);
+});
+
+Route::group([
+    'namespace' => 'App\Http\Controllers',
+    'middleware' => ['auth', 'role:Admin|Staff'],
+], function () {
+    Route::resource('reservations', ReservationController::class);
 });
 
 require __DIR__.'/auth.php';

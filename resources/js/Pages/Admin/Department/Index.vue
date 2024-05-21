@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
 import { Head, Link } from "@inertiajs/vue3";
 
 const props = defineProps({
@@ -12,9 +13,16 @@ const props = defineProps({
         <Head title="Departments" />
         <AuthenticatedLayout>
             <template #header>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Departments
-                </h2>
+                <div class="flex items-center justify-between">
+                    <h2
+                        class="font-semibold text-xl text-gray-800 leading-tight"
+                    >
+                        Departments
+                    </h2>
+                    <PrimaryButton class="ms-4">
+                        <Link href="/admin/departments/create">Add</Link>
+                    </PrimaryButton>
+                </div>
             </template>
 
             <div class="py-12">
@@ -23,11 +31,6 @@ const props = defineProps({
                         class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
                     >
                         <div class="p-6 bg-white border-b border-gray-200">
-                            <Link
-                                href="/admin/departments/create"
-                                class="btn btn-primary mb-4"
-                                >Create New Department</Link
-                            >
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
