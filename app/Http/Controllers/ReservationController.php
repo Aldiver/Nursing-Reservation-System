@@ -6,28 +6,28 @@ use App\Models\Reservation;
 use App\Models\Venue;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::with(['user', 'venue', 'noter', 'approver'])->get();
+        $reservations = Reservation::with(['user', 'options', 'noter', 'approver'])->get();
+        $venues = Venue::All();
         return inertia('Reservation/Index', [
             'reservations' => $reservations,
+            'venues' => $venues,
         ]);
     }
 
     public function create()
     {
-        $venues = Venue::all();
-        $noters = User::permission('noter')->get();
-        $approvers = User::permission('approver')->get();
+        // Eager load options for each venue
+        $venues = Venue::with('options')->get();
 
         return inertia('Reservation/Create', [
             'venues' => $venues,
-            'noters' => $noters,
-            'approvers' => $approvers,
         ]);
     }
 
@@ -35,35 +35,53 @@ class ReservationController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'number_of_participants' => 'nullable|integer',
-            'venue_id' => 'required|exists:venues,id',
-            'noted_by' => 'nullable|exists:users,id',
-            'approved_by' => 'nullable|exists:users,id',
+            'start_time' => 'required|date_format:h:i A',
+            'end_time' => 'required|date_format:h:i A|after:start_time',
+            'purpose' => 'nullable|array', // Ensure it's an array
+            'purpose.*' => 'string', // Ensure each item in the array is a string
         ]);
 
+
+        $start_time = Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i');
+        $end_time = Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i');
+
+        // Convert date string to DateTime object
+        $date = new \DateTime($request->date);
+
         // Check the constraints for date and time
-        if ($request->date->isWeekend() && !($request->date->isSaturday() && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
+        if ($date->format('N') >= 6 && !($date->format('N') == 6 && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
             return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM, and Saturdays from 8 AM to 12 PM.']);
         }
 
+        $noter = User::whereHas('roles', function ($query) {
+            $query->where('name', 'Staff');
+        })->whereHas('permissions', function ($query) {
+            $query->where('name', 'noter');
+        })->first();
+
+        $approver = User::whereHas('roles', function ($query) {
+            $query->where('name', 'Staff');
+        })->whereHas('permissions', function ($query) {
+            $query->where('name', 'approver');
+        })->first();
+
         $reservation = Reservation::create([
-            'date' => $request->date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'number_of_participants' => $request->number_of_participants,
+            'date' => $date,
+            'start_time' => $start_time,
+            'end_time' => $end_time,
             'isNoted' => false,
             'isApproved' => false,
-            'user_id' => Auth::id(),
-            'venue_id' => $request->venue_id,
-            'noted_by' => $request->noted_by,
-            'approved_by' => $request->approved_by,
+            'user_id' => auth()->id(),
+            'noted_by' => $noter ? $noter->id : null,
+            'approved_by' => $approver ? $approver->id : null,
+            'purpose' => $request->purpose,
         ]);
+
+        $reservation->options()->attach($request->options);
 
         // Add notification logic here
 
-        return redirect()->route('admin.reservations.index');
+        return redirect()->route('reservations.index');
     }
 
     public function show(Reservation $reservation)

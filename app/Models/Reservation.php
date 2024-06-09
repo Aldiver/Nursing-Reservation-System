@@ -10,12 +10,13 @@ class Reservation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'date',
-        'start_time',
-        'end_time',
-        'number_of_participants',
-        'isNoted',
-        'isApproved',
+        'date', 'start_time', 'end_time', 'purpose',
+        'isNoted', 'isApproved', 'user_id',
+        'department_id', 'noted_by', 'approved_by'
+    ];
+
+    protected $casts = [
+        'purpose' => 'array',
     ];
 
     public function user()
@@ -23,9 +24,9 @@ class Reservation extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function venue()
+    public function options()
     {
-        return $this->belongsTo(Venue::class);
+        return $this->belongsToMany(Option::class);
     }
 
     public function noter()

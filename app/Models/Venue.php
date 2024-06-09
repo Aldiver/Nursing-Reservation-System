@@ -9,7 +9,10 @@ class Venue extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name', 'description'
-    ];
+    protected $fillable = ['name', 'description'];
+
+    public function options()
+    {
+        return $this->hasMany(Option::class);
+    }
 }

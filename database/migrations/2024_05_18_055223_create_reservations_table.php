@@ -15,13 +15,13 @@ return new class () extends Migration {
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->integer('number_of_participants')->nullable();
+            $table->json('purpose')->nullable();
             $table->boolean('isNoted')->default(false);
             $table->boolean('isApproved')->default(false);
-            $table->foreignId('user_id')->on('users');
-            $table->foreignId('venue_id')->on('venues');
-            $table->foreignId('noted_by')->on('users')->default(null);
-            $table->foreignId('approved_by')->on('users')->default(null);
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('department_id')->nullable()->constrained('departments');
+            $table->foreignId('noted_by')->nullable()->constrained('users');
+            $table->foreignId('approved_by')->nullable()->constrained('users');
             $table->timestamps();
         });
     }

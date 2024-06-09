@@ -31,49 +31,47 @@ const props = defineProps({
             <div class="py-12">
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div
-                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6"
+                        class="bg-white overflow-x-auto shadow-sm sm:rounded-lg p-6"
                     >
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th
-                                        scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
                                         Date
                                     </th>
                                     <th
-                                        scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
                                         Start Time
                                     </th>
                                     <th
-                                        scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
                                         End Time
                                     </th>
                                     <th
-                                        scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
-                                        Venue
+                                        Purpose
                                     </th>
                                     <th
-                                        scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    >
+                                        Options
+                                    </th>
+                                    <th
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
                                         Noted By
                                     </th>
                                     <th
-                                        scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
                                         Approved By
                                     </th>
                                     <th
-                                        scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                     >
                                         Actions
@@ -95,13 +93,50 @@ const props = defineProps({
                                         {{ reservation.end_time }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ reservation.venue.name }}
+                                        <ul>
+                                            <template
+                                                v-if="
+                                                    reservation.purpose &&
+                                                    reservation.purpose.length
+                                                "
+                                            >
+                                                <li
+                                                    v-for="(
+                                                        purpose, index
+                                                    ) in reservation.purpose"
+                                                    :key="index"
+                                                >
+                                                    {{ purpose }}
+                                                </li>
+                                            </template>
+                                            <template v-else>
+                                                <li>-</li>
+                                            </template>
+                                        </ul>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ reservation.noter.name }}
+                                        <ul>
+                                            <li
+                                                v-for="option in reservation.options"
+                                                :key="option.id"
+                                            >
+                                                {{ option.name }}
+                                            </li>
+                                        </ul>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ reservation.approver.name }}
+                                        {{
+                                            reservation.noter
+                                                ? reservation.noter.name
+                                                : "N/A"
+                                        }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {{
+                                            reservation.approver
+                                                ? reservation.approver.name
+                                                : "N/A"
+                                        }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <!-- Add buttons for approving, declining, etc. -->
