@@ -63,6 +63,22 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Venues
                                 </NavLink>
+                                <NavLink
+                                    :href="route('reservations.index')"
+                                    :active="
+                                        route().current('reservations.index')
+                                    "
+                                >
+                                    Reservation
+                                </NavLink>
+                                <NavLink
+                                    :href="route('admin.schedules.index')"
+                                    :active="
+                                        route().current('admin.schedules.index')
+                                    "
+                                >
+                                    Schedules
+                                </NavLink>
                             </div>
                         </div>
 

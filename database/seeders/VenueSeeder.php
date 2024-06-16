@@ -19,25 +19,25 @@ class VenueSeeder extends Seeder
                 'name' => 'Nursing Skill Laboratory 1',
                 'description' => 'Description for Nursing Skill Laboratory 1',
                 'options' => [
-                    'Cubicle #1 - Obstetric Ward',
-                    'Cubicle #2 - Surgical Ward',
-                    'Cubicle #3 - Geriatric Ward',
-                    'Cubicle #4 - Orthopedic Ward',
-                    'Cubicle #5 - Medical Ward',
-                    'Cubicle #6 - Surgical Ward',
-                    'Cubicle #7 - Pre-Natal Ward',
-                    'Operating Room',
-                    'Delivery Room',
-                    'Central Supply Room',
-                    'Amphitheater (40 persons)',
-                    'Nutrition Room (30 persons)',
+                    ['name' => 'Cubicle #1 - Obstetric Ward'],
+                    ['name' => 'Cubicle #2 - Surgical Ward'],
+                    ['name' => 'Cubicle #3 - Geriatric Ward'],
+                    ['name' => 'Cubicle #4 - Orthopedic Ward'],
+                    ['name' => 'Cubicle #5 - Medical Ward'],
+                    ['name' => 'Cubicle #6 - Surgical Ward'],
+                    ['name' => 'Cubicle #7 - Pre-Natal Ward'],
+                    ['name' => 'Operating Room'],
+                    ['name' => 'Delivery Room'],
+                    ['name' => 'Central Supply Room'],
+                    ['name' => 'Amphitheater (40 persons)', 'with_pax' => true],
+                    ['name' => 'Nutrition Room (30 persons)', 'with_pax' => true],
                 ],
             ],
             [
                 'name' => 'Nursing Skills Laboratory 2',
                 'description' => 'Description for Nursing Skills Laboratory 2',
                 'options' => [
-                    'Ward with 9 bed',
+                    ['name' => 'Ward with 9 bed'],
                 ],
             ],
         ];
@@ -48,10 +48,11 @@ class VenueSeeder extends Seeder
                 'description' => $venueData['description'],
             ]);
 
-            foreach ($venueData['options'] as $optionName) {
-                $option = Option::create([
-                    'name' => $optionName,
+            foreach ($venueData['options'] as $optionData) {
+                Option::create([
+                    'name' => $optionData['name'],
                     'venue_id' => $venue->id,
+                    'with_pax' => $optionData['with_pax'] ?? false,
                 ]);
             }
         }

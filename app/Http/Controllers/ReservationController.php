@@ -33,22 +33,25 @@ class ReservationController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'date' => 'required|date',
             'start_time' => 'required|date_format:h:i A',
             'end_time' => 'required|date_format:h:i A|after:start_time',
-            'purpose' => 'nullable|array', // Ensure it's an array
-            'purpose.*' => 'string', // Ensure each item in the array is a string
+            'purpose' => 'nullable|array',
+            'purpose.*' => 'string',
+            'options' => 'required|array',
+            'options.*' => 'integer|exists:options,id',
+            'pax' => 'nullable|array',
+            'pax.*' => 'nullable|integer',
         ]);
 
+        // dd($validatedData);
 
         $start_time = Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i');
         $end_time = Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i');
 
-        // Convert date string to DateTime object
         $date = new \DateTime($request->date);
 
-        // Check the constraints for date and time
         if ($date->format('N') >= 6 && !($date->format('N') == 6 && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
             return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM, and Saturdays from 8 AM to 12 PM.']);
         }
@@ -77,9 +80,9 @@ class ReservationController extends Controller
             'purpose' => $request->purpose,
         ]);
 
-        $reservation->options()->attach($request->options);
-
-        // Add notification logic here
+        foreach ($validatedData['options'] as $optionId) {
+            $reservation->options()->attach($optionId, ['pax' => $validatedData['pax'][$optionId] ?? null]);
+        }
 
         return redirect()->route('reservations.index');
     }

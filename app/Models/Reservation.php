@@ -26,7 +26,7 @@ class Reservation extends Model
 
     public function options()
     {
-        return $this->belongsToMany(Option::class);
+        return $this->belongsToMany(Option::class)->withPivot('pax')->withTimestamps();
     }
 
     public function noter()

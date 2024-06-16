@@ -9,7 +9,7 @@ class Option extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['venue_id', 'name'];
+    protected $fillable = ['venue_id', 'name', 'with_pax', 'pax'];
 
     public function venue()
     {
@@ -18,6 +18,6 @@ class Option extends Model
 
     public function reservations()
     {
-        return $this->belongsToMany(Reservation::class);
+        return $this->belongsToMany(Reservation::class)->withPivot('pax')->withTimestamps();
     }
 }

@@ -13,6 +13,8 @@ return new class () extends Migration {
         Schema::create('options', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->boolean('with_pax')->defalt('false');
+            $table->unsignedInteger('pax')->nullable();
             $table->foreignId('venue_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
