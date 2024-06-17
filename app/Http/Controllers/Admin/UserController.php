@@ -11,10 +11,47 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:list', ['only' => ['index', 'show']]);
+        $this->middleware('can:create', ['only' => ['create', 'store']]);
+        $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
+        $this->middleware('can:delete', ['only' => ['destroy']]);
+    }
     public function index()
     {
-        $users = User::with('roles')->get();
-        return inertia('Admin/User/Index', ['users' => $users]);
+        $users = User::with('roles')->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'contact_number' => $user->contact_number,
+                'role' => $user->roles->pluck('name')->implode(', '), // Retrieve roles
+                'created_at' => $user->created_at->toDateString(),
+            ];
+        });
+
+        // Define columns
+        $columns = [
+            ['label' => 'ID', 'field' => 'id'],
+            ['label' => 'Name', 'field' => 'name'],
+            ['label' => 'Email', 'field' => 'email'],
+            ['label' => 'Contact Number', 'field' => 'contact_number'],
+            ['label' => 'Role', 'field' => 'role'],
+            ['label' => 'Created At', 'field' => 'created_at'],
+        ];
+
+        // Get user permissions
+        $permissions = [
+            'edit' => auth()->user()->can('edit'),
+            'delete' => auth()->user()->can('delete'),
+        ];
+
+        return inertia('Admin/User/Index', [
+            'users' => $users,
+            'columns' => $columns,
+            'permissions' => $permissions,
+        ]);
     }
 
     public function create()

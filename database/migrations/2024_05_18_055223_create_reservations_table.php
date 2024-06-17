@@ -24,14 +24,6 @@ return new class () extends Migration {
             $table->foreignId('approved_by')->nullable()->constrained('users');
             $table->timestamps();
         });
-
-        Schema::create('option_reservation', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('reservation_id')->constrained()->onDelete('cascade');
-            $table->foreignId('option_id')->constrained()->onDelete('cascade');
-            $table->unsignedInteger('pax')->nullable();
-            $table->timestamps();
-        });
     }
 
     /**

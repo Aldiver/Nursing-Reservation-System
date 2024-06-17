@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
 Route::group([
     'namespace' => 'App\Http\Controllers\Admin',
     'prefix' => 'admin',
-    'middleware' => ['auth', 'role:Admin'],
+    'middleware' => ['auth', 'role:Admin|Staff'],
     'as' => 'admin.',
 ], function () {
     Route::resource('departments', DepartmentController::class);

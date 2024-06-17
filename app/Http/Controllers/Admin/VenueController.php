@@ -8,13 +8,46 @@ use App\Models\Venue;
 
 class VenueController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:list', ['only' => ['index', 'show']]);
+        $this->middleware('can:create', ['only' => ['create', 'store']]);
+        $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
+        $this->middleware('can:delete', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $venues = Venue::all();
-        return inertia('Admin/Venue/Index', ['venues' => $venues]);
+        $venues = Venue::all(['id', 'name', 'description', 'created_at'])->map(function ($venue) {
+            return [
+                'id' => $venue->id,
+                'name' => $venue->name,
+                'location' => $venue->description,
+                'created_at' => $venue->created_at->toDateString(),
+            ];
+        });
+
+        // Define columns
+        $columns = [
+            ['label' => 'ID', 'field' => 'id'],
+            ['label' => 'Name', 'field' => 'name'],
+            ['label' => 'Location', 'field' => 'location'],
+            ['label' => 'Created At', 'field' => 'created_at'],
+        ];
+
+        // Get user permissions (if needed)
+        $permissions = [
+            'edit' => auth()->user()->can('edit'),
+            'delete' => auth()->user()->can('delete'),
+        ];
+
+        return inertia('Admin/Department/Index', [
+            'departments' => $venues,
+            'columns' => $columns,
+            'permissions' => $permissions,
+        ]);
     }
 
     /**

@@ -13,11 +13,44 @@ class ReservationController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::with(['user', 'options', 'noter', 'approver'])->get();
-        $venues = Venue::All();
+        $reservations = Reservation::with(['user', 'noter', 'approver'])
+            ->get(['id', 'date', 'purpose', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by']);
+
+        $formattedReservations = $reservations->map(function ($reservation) {
+            $startTime = \Carbon\Carbon::parse($reservation->start_time);
+            $endTime = \Carbon\Carbon::parse($reservation->end_time);
+
+            $options = $reservation->options->pluck('name')->toArray();
+
+            // Format purpose
+            $purpose = collect($reservation->purpose)->map(function ($item) {
+                return is_array($item) ? $item['value'] : $item;
+            })->implode(', ');
+            return [
+                'id' => $reservation->id,
+                'reserved_by' => $reservation->user->name,
+                'purpose' => $purpose,
+                'options' => implode(', ', $options),
+                'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
+                'noted_by' => optional($reservation->noter)->name,
+                'approved_by' => optional($reservation->approver)->name,
+            ];
+        });
+
+        // Define columns
+        $columns = [
+            ['label' => 'ID', 'field' => 'id'],
+            ['label' => 'Reserved By', 'field' => 'reserved_by'],
+            ['label' => 'Purpose', 'field' => 'purpose'],
+            ['label' => 'Options', 'field' => 'options'],
+            ['label' => 'Reservation Date', 'field' => 'reservation_date'],
+            ['label' => 'Noted By', 'field' => 'noted_by'],
+            ['label' => 'Approved By', 'field' => 'approved_by'],
+        ];
+
         return inertia('Reservation/Index', [
-            'reservations' => $reservations,
-            'venues' => $venues,
+            'reservations' => $formattedReservations,
+            'columns' => $columns,
         ]);
     }
 

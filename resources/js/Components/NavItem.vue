@@ -5,7 +5,10 @@ import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 import { computed } from "vue";
 
 const props = defineProps({
-    item: Object,
+    item: {
+        type: Object,
+        required: false,
+    },
 });
 
 const hasActiveChild = computed(() => {

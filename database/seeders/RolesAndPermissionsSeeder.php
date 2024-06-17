@@ -19,13 +19,15 @@ class RolesAndPermissionsSeeder extends Seeder
         $staff = Role::create(['name' => 'Staff']);
 
         // Create Permissions
+        $list = Permission::create(['name' => 'list']);
+        $create = Permission::create(['name' => 'create']);
         $edit = Permission::create(['name' => 'edit']);
         $delete = Permission::create(['name' => 'delete']);
         $noter = Permission::create(['name' => 'noter']);
         $approver = Permission::create(['name' => 'approver']);
 
         // Assign Permissions to Roles
-        $admin->givePermissionTo($edit, $delete, $noter, $approver);
+        $admin->givePermissionTo($edit, $delete, $list, $create, $noter, $approver);
 
         // Create a super admin user
         $user = \App\Models\User::factory()->create([

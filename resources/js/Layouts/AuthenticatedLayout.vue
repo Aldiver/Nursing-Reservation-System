@@ -85,10 +85,11 @@ const navItems = [
     >
         <!-- Sidebar -->
         <aside
+            id="aside"
             :class="{ block: isSidebarOpen, hidden: !isSidebarOpen }"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg lg:block lg:relative dark:bg-gray-900"
+            class="fixed lg:py-2 lg:pl-2 inset-y-0 left-0 z-50 w-64 shadow-lg lg:block lg:relative"
         >
-            <div class="flex flex-col h-full">
+            <div class="aside lg:rounded-2xl flex flex-col h-full bg-gray-900">
                 <div
                     class="flex items-center justify-between p-4 border-gray-100 dark:border-gray-700"
                 >
@@ -128,9 +129,7 @@ const navItems = [
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
             <!-- Top Navigation -->
-            <nav
-                class="bg-white border-b border-gray-100 flex-shrink-0 dark:bg-gray-900 dark:border-gray-700"
-            >
+            <nav class="bg-gray-100 border-b flex-shrink-0 dark:bg-gray-800">
                 <div
                     class="flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8"
                 >
@@ -219,7 +218,6 @@ const navItems = [
                     </div>
                 </div>
             </nav>
-
             <!-- Page Content -->
             <main class="flex-1 overflow-y-auto p-6">
                 <slot />

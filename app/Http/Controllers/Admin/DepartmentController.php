@@ -5,16 +5,46 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Department;
+use Illuminate\Support\Facades\Auth;
 
 class DepartmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->middleware('can:list', ['only' => ['index', 'show']]);
+        $this->middleware('can:create', ['only' => ['create', 'store']]);
+        $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
+        $this->middleware('can:delete', ['only' => ['destroy']]);
+    }
+
     public function index()
     {
-        $departments = Department::all();
-        return inertia('Admin/Department/Index', ['departments' => $departments]);
+        $departments = Department::all(['id', 'name', 'created_at'])->map(function ($department) {
+            return [
+                'id' => $department->id,
+                'name' => $department->name,
+                'created_at' => $department->created_at->toDateString(),
+            ];
+        });
+
+        // Define columns
+        $columns = [
+            ['label' => 'ID', 'field' => 'id'],
+            ['label' => 'Name', 'field' => 'name'],
+            ['label' => 'Created At', 'field' => 'created_at'],
+        ];
+
+        // Get user permissions (if needed)
+        $permissions = [
+            'edit' => auth()->user()->can('edit'),
+            'delete' => auth()->user()->can('delete'),
+        ];
+
+        return inertia('Admin/Department/Index', [
+            'departments' => $departments,
+            'columns' => $columns,
+            'permissions' => $permissions,
+        ]);
     }
 
     /**
