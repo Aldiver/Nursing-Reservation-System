@@ -2,12 +2,19 @@ import "./bootstrap";
 import "../css/app.css";
 import "../css/main.css";
 
+import { createPinia } from "pinia";
+import { useStyleStore } from "@/stores/style.js";
+
+import { darkModeKey, styleKey } from "@/config.js";
+
 import { createApp, h } from "vue";
 import { createInertiaApp } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
 
-const appName = import.meta.env.VITE_APP_NAME || "Laravel";
+const appName = import.meta.env.VITE_APP_NAME || "ADZU NURSING RESERVATION";
+
+const pinia = createPinia();
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -26,3 +33,17 @@ createInertiaApp({
         color: "#4B5563",
     },
 });
+
+const styleStore = useStyleStore(pinia);
+
+/* App style */
+styleStore.setStyle(localStorage[styleKey] ?? "basic");
+
+/* Dark mode */
+if (
+    (!localStorage[darkModeKey] &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches) ||
+    localStorage[darkModeKey] === "1"
+) {
+    styleStore.setDarkMode(true);
+}

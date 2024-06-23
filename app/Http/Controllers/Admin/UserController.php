@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -33,7 +34,7 @@ class UserController extends Controller
 
         // Define columns
         $columns = [
-            ['label' => 'ID', 'field' => 'id'],
+            // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Name', 'field' => 'name'],
             ['label' => 'Email', 'field' => 'email'],
             ['label' => 'Contact Number', 'field' => 'contact_number'],
@@ -57,7 +58,11 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return inertia('Admin/User/Create', ['roles' => $roles]);
+        $permissions = Permission::all();
+        return inertia('Admin/User/Create', [
+            'roles' => $roles,
+            'permissions' => $permissions,
+        ]);
     }
 
     public function store(Request $request)
@@ -76,6 +81,10 @@ class UserController extends Controller
         ]);
 
         $user->assignRole($request->role);
+
+        if ($request->has('permissions')) {
+            $user->givePermissionTo($request->permissions);
+        }
 
         return redirect()->route('admin.users.index');
     }

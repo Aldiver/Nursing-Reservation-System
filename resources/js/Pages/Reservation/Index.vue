@@ -35,6 +35,7 @@ const props = defineProps({
                         :checkable="true"
                         :columns="columns"
                         :rows="reservations"
+                        :permissions="permissions"
                     />
                 </CardBox>
             </div>

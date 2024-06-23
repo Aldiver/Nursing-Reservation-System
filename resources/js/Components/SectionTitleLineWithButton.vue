@@ -1,8 +1,13 @@
 <script setup>
+import { mdiCog } from "@mdi/js";
 import { useSlots, computed } from "vue";
+import BaseIcon from "@/Components/BaseIcon.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import IconRounded from "@/Components/IconRounded.vue";
 
 defineProps({
     icon: {
+        type: String,
         default: null,
     },
     title: {
@@ -21,27 +26,19 @@ const hasSlot = computed(() => useSlots().default);
         class="mb-6 flex items-center justify-between"
     >
         <div class="flex items-center justify-start">
-            <div
+            <IconRounded
                 v-if="icon && main"
-                class="mr-3 rounded-full h-16 w-16 bg-white dark:bg-gray-900 flex items-center justify-center"
-            >
-                <component
-                    :is="icon"
-                    class="h-8 w-8 text-gray-800 dark:text-gray-200"
-                />
-            </div>
-            <component
-                v-else-if="icon"
-                :is="icon"
-                class="mr-2 h-6 w-6 text-gray-800 dark:text-gray-200"
+                :icon="icon"
+                color="light"
+                class="mr-3"
+                bg
             />
-            <h1
-                :class="main ? 'text-3xl' : 'text-2xl'"
-                class="leading-tight text-gray-800 font-semibold dark:text-gray-200"
-            >
+            <BaseIcon v-else-if="icon" :path="icon" class="mr-2" size="20" />
+            <h1 :class="main ? 'text-3xl' : 'text-2xl'" class="leading-tight">
                 {{ title }}
             </h1>
         </div>
         <slot v-if="hasSlot" />
+        <BaseButton v-else :icon="mdiCog" color="whiteDark" />
     </section>
 </template>

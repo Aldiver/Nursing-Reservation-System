@@ -1,11 +1,11 @@
 <script setup>
 import { computed } from "vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
-import BaseButton from "@/components/BaseButton.vue";
-import BaseButtons from "@/components/BaseButtons.vue";
-import CardBox from "@/components/CardBox.vue";
-import OverlayLayer from "@/components/OverlayLayer.vue";
-import CardBoxComponentTitle from "@/components/CardBoxComponentTitle.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import BaseButtons from "@/Components/BaseButtons.vue";
+import CardBox from "@/Components/CardBox.vue";
+import OverlayLayer from "@/Components/OverlayLayer.vue";
+import CardBoxComponentTitle from "@/Components/CardBoxComponentTitle.vue";
 
 const props = defineProps({
     title: {

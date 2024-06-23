@@ -1,17 +1,24 @@
 <script setup>
+import { useStyleStore } from "@/stores/style.js";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head } from "@inertiajs/vue3";
-import { ref } from "vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import SectionMain from "@/Components/SectionMain.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
-import { Link } from "@inertiajs/vue3";
+import SectionMain from "@/Components/SectionMain.vue";
+import IndexAdmin from "@/Components/IndexAdmin.vue";
 import { Qalendar } from "qalendar";
 import CardBox from "@/Components/CardBox.vue";
-import { CalendarDaysIcon } from "@heroicons/vue/24/outline";
+import { Head } from "@inertiajs/vue3";
+import { ref } from "vue";
+import { mdiCalendarMonth } from "@mdi/js";
+
+const styleStore = useStyleStore();
 
 const props = defineProps({
-    reservations: Array,
+    users: Array,
+    columns: Array,
+    permissions: Object,
+    trendData: Object,
+    incomingReservations: Object,
+    reservations: Object,
 });
 
 // Function to format time as required
@@ -53,27 +60,20 @@ const config = ref({
 </style>
 
 <template>
-    <div>
-        <Head title="Schedules" />
+    <Head title="Dashboard" />
 
-        <AuthenticatedLayout>
-            <SectionMain>
-                <SectionTitleLineWithButton
-                    :icon="CalendarDaysIcon"
-                    title="Schedules"
-                    main
-                >
-                    <PrimaryButton>
-                        <Link href="/reservations/create">Add Reservation</Link>
-                    </PrimaryButton>
-                </SectionTitleLineWithButton>
-            </SectionMain>
-
-            <div class="py-12">
-                <!-- <CardBox class="mb-6" style="color-scheme: dark">
-                    <Qalendar :events="events" :config="config" />
-                </CardBox> -->
-            </div>
-        </AuthenticatedLayout>
-    </div>
+    <AuthenticatedLayout>
+        <SectionMain>
+            <IndexAdmin :data="trendData" :incoming="incomingReservations" />
+            <SectionTitleLineWithButton
+                :icon="mdiCalendarMonth"
+                title="Calendar Schedules"
+            >
+                <slot />
+            </SectionTitleLineWithButton>
+            <CardBox class="mb-6 calendar-container is-light-mode">
+                <Qalendar :events="events" :config="config" />
+            </CardBox>
+        </SectionMain>
+    </AuthenticatedLayout>
 </template>

@@ -29,7 +29,7 @@ class DepartmentController extends Controller
 
         // Define columns
         $columns = [
-            ['label' => 'ID', 'field' => 'id'],
+            // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Name', 'field' => 'name'],
             ['label' => 'Created At', 'field' => 'created_at'],
         ];

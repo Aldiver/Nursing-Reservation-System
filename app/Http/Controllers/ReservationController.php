@@ -13,9 +13,26 @@ class ReservationController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::with(['user', 'noter', 'approver'])
-            ->get(['id', 'date', 'purpose', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by']);
+        $user = auth()->user();
 
+        // Check permissions
+        $canNote = $user->can('noter');
+        $canApprove = $user->can('approver');
+
+        // Fetch reservations based on permissions
+        if ($canNote || $canApprove) {
+            $reservations = Reservation::with(['user', 'noter', 'approver'])->get([
+                'id', 'date', 'purpose', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
+            ]);
+        } else {
+            $reservations = Reservation::with(['user', 'noter', 'approver'])
+                ->where('user_id', $user->id)
+                ->get([
+                    'id', 'date', 'purpose', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
+                ]);
+        }
+
+        // Format the reservations
         $formattedReservations = $reservations->map(function ($reservation) {
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
@@ -26,6 +43,7 @@ class ReservationController extends Controller
             $purpose = collect($reservation->purpose)->map(function ($item) {
                 return is_array($item) ? $item['value'] : $item;
             })->implode(', ');
+
             return [
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
@@ -34,25 +52,37 @@ class ReservationController extends Controller
                 'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
                 'noted_by' => optional($reservation->noter)->name,
                 'approved_by' => optional($reservation->approver)->name,
+                'isNoted' => $reservation->isNoted,
+                'isApproved' => $reservation->isApproved,
             ];
         });
 
         // Define columns
         $columns = [
-            ['label' => 'ID', 'field' => 'id'],
+            // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Reserved By', 'field' => 'reserved_by'],
             ['label' => 'Purpose', 'field' => 'purpose'],
             ['label' => 'Options', 'field' => 'options'],
             ['label' => 'Reservation Date', 'field' => 'reservation_date'],
-            ['label' => 'Noted By', 'field' => 'noted_by'],
-            ['label' => 'Approved By', 'field' => 'approved_by'],
+            ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note'],
+            ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve'],
+        ];
+
+        // Define permissions
+        $permissions = [
+            'edit' => $user->can('edit'),
+            'delete' => $user->can('delete'),
+            'note' => $canNote,
+            'approve' => $canApprove,
         ];
 
         return inertia('Reservation/Index', [
             'reservations' => $formattedReservations,
             'columns' => $columns,
+            'permissions' => $permissions,
         ]);
     }
+
 
     public function create()
     {
@@ -171,6 +201,7 @@ class ReservationController extends Controller
     {
         $this->authorize('noter', $reservation);
         $reservation->update(['isNoted' => !$reservation->isNoted]);
+        $reservation->update(['noted_by' => auth()->id()]);
         return redirect()->route('reservations.index');
     }
 
@@ -178,6 +209,7 @@ class ReservationController extends Controller
     {
         $this->authorize('approver', $reservation);
         $reservation->update(['isApproved' => !$reservation->isApproved]);
+        $reservation->update(['approved_by' => auth()->id()]);
         return redirect()->route('reservations.index');
     }
 }

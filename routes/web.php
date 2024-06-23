@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\ScheduleController;
 
 // routes/web.php
@@ -32,9 +33,9 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -45,7 +46,7 @@ Route::middleware('auth')->group(function () {
 Route::group([
     'namespace' => 'App\Http\Controllers\Admin',
     'prefix' => 'admin',
-    'middleware' => ['auth', 'role:Admin|Staff'],
+    'middleware' => ['auth', 'role:Admin'],
     'as' => 'admin.',
 ], function () {
     Route::resource('departments', DepartmentController::class);
@@ -59,6 +60,9 @@ Route::group([
     'middleware' => ['auth', 'role:Admin|Staff'],
 ], function () {
     Route::resource('reservations', ReservationController::class);
+    Route::resource('dashboard', DashboardController::class);
+    Route::get('/note-reservation/{reservation}', 'ReservationController@note')->name('reservation.note');
+    Route::get('/approve-reservation/{reservation}', 'ReservationController@approve')->name('reservation.approve');
 });
 
 require __DIR__.'/auth.php';

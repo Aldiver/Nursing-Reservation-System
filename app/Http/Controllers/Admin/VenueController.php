@@ -31,7 +31,7 @@ class VenueController extends Controller
 
         // Define columns
         $columns = [
-            ['label' => 'ID', 'field' => 'id'],
+            // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Name', 'field' => 'name'],
             ['label' => 'Location', 'field' => 'location'],
             ['label' => 'Created At', 'field' => 'created_at'],

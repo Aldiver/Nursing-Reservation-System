@@ -12,6 +12,10 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    permissions: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
 const form = useForm({
@@ -20,6 +24,7 @@ const form = useForm({
     password: "",
     password_confirmation: "",
     role: "",
+    permissions: [],
 });
 
 const submit = () => {
@@ -97,6 +102,36 @@ const submit = () => {
                                         {{ role.name }}
                                     </option>
                                 </select>
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel
+                                    for="permissions"
+                                    value="Permissions"
+                                />
+                                <div class="flex flex-wrap mt-1">
+                                    <div
+                                        v-for="permission in permissions"
+                                        :key="permission.id"
+                                        class="mr-4"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            :id="'permission-' + permission.id"
+                                            :value="permission.name"
+                                            v-model="form.permissions"
+                                            class="mr-1"
+                                        />
+                                        <label
+                                            :for="'permission-' + permission.id"
+                                            >{{ permission.name }}</label
+                                        >
+                                    </div>
+                                </div>
+                                <InputError
+                                    class="mt-2"
+                                    :message="form.errors.permissions"
+                                />
                             </div>
 
                             <div class="mt-4">

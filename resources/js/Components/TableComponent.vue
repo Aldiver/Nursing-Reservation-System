@@ -5,7 +5,7 @@ import TableCheckboxCell from "@/Components/TableCheckboxCell.vue";
 import BaseLevel from "@/Components/BaseLevel.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import BaseButton from "@/Components/BaseButton.vue";
-import { EyeIcon, TrashIcon } from "@heroicons/vue/24/solid";
+import { EyeIcon, TrashIcon, CheckCircleIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
     checkable: Boolean,
@@ -55,6 +55,31 @@ const checked = (isChecked, row) => {
         );
     }
 };
+
+const shouldDisplayNoteButton = (action, row) => {
+    return action === "note" && props.permissions.note && !row["isNoted"];
+};
+
+const shouldDisplayApproveButton = (action, row) => {
+    return (
+        action === "approve" &&
+        row["isNoted"] &&
+        props.permissions.approve &&
+        !row["isApproved"]
+    );
+};
+
+const getCellContent = (action, row) => {
+    if (action === "note") {
+        if (!props.permissions.note && !row["isNoted"]) return "Pending";
+        if (row["isNoted"]) return row["noted_by"];
+    } else if (action === "approve") {
+        if (!row["isNoted"]) return "Pending";
+        if (!props.permissions.approve && !row["isApproved"]) return "Pending";
+        if (row["isApproved"]) return row["approved_by"];
+    }
+    return "";
+};
 </script>
 
 <template>
@@ -75,7 +100,7 @@ const checked = (isChecked, row) => {
     <table>
         <thead>
             <tr>
-                <th v-if="checkable" />
+                <th />
                 <th
                     v-for="column in columns"
                     :key="column.field"
@@ -87,17 +112,44 @@ const checked = (isChecked, row) => {
             </tr>
         </thead>
         <tbody>
-            <tr v-for="row in itemsPaginated" :key="row.id">
-                <TableCheckboxCell
+            <tr v-for="(row, index) in itemsPaginated" :key="row.id">
+                <!-- <TableCheckboxCell
                     v-if="checkable"
                     @checked="checked($event, row)"
-                />
+                /> -->
+                <td>{{ index + 1 + currentPage * 5 }}</td>
                 <td
                     v-for="column in columns"
                     :key="column.field"
                     :data-label="column.label"
                 >
-                    {{ row[column.field] }}
+                    <template v-if="column.action">
+                        <!-- Note Button Logic -->
+                        <BaseButton
+                            v-if="shouldDisplayNoteButton(column.action, row)"
+                            :href="route(`reservation.note`, row.id)"
+                            color="info"
+                            :icon="CheckCircleIcon"
+                            small
+                        />
+                        <!-- Approve Button Logic -->
+                        <BaseButton
+                            v-if="
+                                shouldDisplayApproveButton(column.action, row)
+                            "
+                            :href="route(`reservation.approve`, row.id)"
+                            color="info"
+                            :icon="CheckCircleIcon"
+                            small
+                        />
+                        <!-- Pending or Noted/Approved Display Logic -->
+                        <span v-else>
+                            {{ getCellContent(column.action, row) }}
+                        </span>
+                    </template>
+                    <template v-else>
+                        {{ row[column.field] }}
+                    </template>
                 </td>
                 <td
                     v-if="permissions.edit || permissions.delete"

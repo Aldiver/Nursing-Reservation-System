@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.event-flyout__menu {
+    background-color: #0758da;
+    /* Add more styles as needed */
+}
