@@ -71,8 +71,12 @@ const config = ref({
             >
                 <slot />
             </SectionTitleLineWithButton>
-            <CardBox class="mb-6 calendar-container is-light-mode">
-                <Qalendar :events="events" :config="config" />
+            <CardBox class="calendar-container is-light-mode">
+                <Qalendar
+                    class="bg-gray-200 text-slate-900"
+                    :events="events"
+                    :config="config"
+                />
             </CardBox>
         </SectionMain>
     </AuthenticatedLayout>

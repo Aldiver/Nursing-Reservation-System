@@ -94,7 +94,7 @@ const navItems = [
         class="min-h-screen overflow-hidden"
     >
         <div
-            class="flex min-h-screen w-screen transition-position lg:w-auto bg-gray-50 dark:bg-slate-800 dark:text-slate-100"
+            class="flex min-h-screen w-screen transition-position lg:w-auto bg-gray-200 dark:bg-slate-800 dark:text-slate-100"
         >
             <aside
                 id="aside"
@@ -165,7 +165,7 @@ const navItems = [
             <div class="flex-1 flex flex-col">
                 <!-- Top Navigation -->
                 <nav
-                    class="top-0 left-0 right-0 fixed bg-gray-50 h-14 w-screen transition-position xl:pl-60 lg:w-auto dark:bg-slate-800"
+                    class="top-0 left-0 right-0 fixed bg-gray-200 h-14 w-screen transition-position xl:pl-60 lg:w-auto dark:bg-slate-800"
                 >
                     <div
                         class="flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8"

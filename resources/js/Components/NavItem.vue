@@ -30,7 +30,7 @@ const hasActiveChild = computed(() => {
     <NavLink
         v-if="!item.children.length"
         :class="[
-            'group flex w-full items-center rounded-md space-x-2 px-4 py-2 text-sm text-gray-100 hover:text-gray-50',
+            'group flex w-full items-center rounded-md space-x-2 px-4 py-2 text-sm text-gray-50 hover:text-gray-50',
             'hover:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-800',
             item.active
                 ? 'font-semibold text-gray-800'
