@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { Link } from "@inertiajs/vue3";
 import { getButtonColor } from "@/colors.js";
+import BaseIcon from "@/Components/BaseIcon.vue";
 
 const props = defineProps({
     label: {
@@ -9,6 +10,7 @@ const props = defineProps({
         default: null,
     },
     icon: {
+        type: String,
         default: null,
     },
     href: {
@@ -29,7 +31,7 @@ const props = defineProps({
     },
     color: {
         type: String,
-        default: "dark",
+        default: "white",
     },
     as: {
         type: String,
@@ -83,7 +85,7 @@ const componentClass = computed(() => {
         "duration-150",
         "border",
         props.roundedFull ? "rounded-full" : "rounded",
-        props.active ? "ring ring-black dark:ring-gray" : "ring-blue-700",
+        props.active ? "ring ring-black dark:ring-white" : "ring-blue-700",
         getButtonColor(props.color, props.outline, !props.disabled),
     ];
 
@@ -113,12 +115,7 @@ const componentClass = computed(() => {
         :target="target"
         :disabled="disabled"
     >
-        <component
-            v-if="icon"
-            :is="icon"
-            class="h-5 w-5 text-gray-800 dark:text-gray-200"
-        />
-
-        <span v-if="label" :class="labelClass"> {{ label }} </span>
+        <BaseIcon v-if="icon" :path="icon" />
+        <span v-if="label" :class="labelClass">{{ label }}</span>
     </component>
 </template>

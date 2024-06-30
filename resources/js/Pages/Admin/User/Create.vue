@@ -1,11 +1,19 @@
 <!-- UserCreate.vue -->
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
 import { Head, useForm, Link } from "@inertiajs/vue3";
+import SectionMain from "@/Components/SectionMain.vue";
+import CardBox from "@/Components/CardBox.vue";
+import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
+import FormField from "@/Components/FormField.vue";
+import FormControl from "@/Components/FormControl.vue";
+import FormCheckRadioGroup from "@/Components/FormCheckRadioGroup.vue";
+import BaseDivider from "@/Components/BaseDivider.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import BaseButtons from "@/Components/BaseButtons.vue";
+
+import { mdiCardAccountDetails } from "@mdi/js";
 
 const props = defineProps({
     roles: {
@@ -16,15 +24,21 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    departments: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
 const form = useForm({
     name: "",
     email: "",
+    contact: "",
     password: "",
     password_confirmation: "",
     role: "",
     permissions: [],
+    department: "",
 });
 
 const submit = () => {
@@ -38,161 +52,155 @@ const submit = () => {
     <div>
         <Head title="Create User" />
         <AuthenticatedLayout>
-            <template #header>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Create User
-                </h2>
-            </template>
-
-            <div
-                class="flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100"
-            >
-                <div
-                    class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg"
+            <SectionMain>
+                <SectionTitleLineWithButton
+                    :icon="mdiCardAccountDetails"
+                    title="Create Users"
+                    main
                 >
-                    <div
-                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
+                    <PrimaryButton class="ms-4">
+                        <Link href="/admin/users">Back</Link>
+                    </PrimaryButton>
+                </SectionTitleLineWithButton>
+
+                <CardBox
+                    is-form
+                    @submit.prevent="form.post(route('admin.users.store'))"
+                >
+                    <FormField
+                        label="Name"
+                        :class="{ 'text-red-400': form.errors.name }"
                     >
-                        <form @submit.prevent="submit">
-                            <div>
-                                <InputLabel for="name" value="Name" />
-
-                                <TextInput
-                                    id="name"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    v-model="form.name"
-                                    required
-                                    autofocus
-                                    autocomplete="name"
-                                />
-
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.name"
-                                />
+                        <FormControl
+                            v-model="form.name"
+                            type="text"
+                            placeholder="Enter Name"
+                            :error="form.errors.name"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.name"
+                            >
+                                {{ form.errors.name }}
                             </div>
-
-                            <div class="mt-4">
-                                <InputLabel for="email" value="Email" />
-
-                                <TextInput
-                                    id="email"
-                                    type="email"
-                                    class="mt-1 block w-full"
-                                    v-model="form.email"
-                                    required
-                                    autocomplete="username"
-                                />
-
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.email"
-                                />
+                        </FormControl></FormField
+                    >
+                    <FormField
+                        label="Contact"
+                        :class="{ 'text-red-400': form.errors.contact }"
+                    >
+                        <FormControl
+                            v-model="form.contact"
+                            type="text"
+                            placeholder="Enter Contact Number"
+                            :error="form.errors.contact"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.contact"
+                            >
+                                {{ form.errors.contact }}
                             </div>
-
-                            <div>
-                                <label>Role</label>
-                                <select v-model="form.role" required>
-                                    <option
-                                        v-for="role in roles"
-                                        :key="role.name"
-                                        :value="role.name"
-                                    >
-                                        {{ role.name }}
-                                    </option>
-                                </select>
+                        </FormControl></FormField
+                    >
+                    <FormField
+                        label="Email"
+                        :class="{ 'text-red-400': form.errors.email }"
+                    >
+                        <FormControl
+                            v-model="form.email"
+                            type="text"
+                            placeholder="Enter Email"
+                            :error="form.errors.email"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.email"
+                            >
+                                {{ form.errors.email }}
                             </div>
+                        </FormControl></FormField
+                    >
+                    <FormField
+                        label="Department"
+                        :class="{ 'text-red-400': form.errors.department }"
+                    >
+                        <FormControl
+                            v-model="form.department"
+                            :options="props.departments"
+                        />
 
-                            <div class="mt-4">
-                                <InputLabel
-                                    for="permissions"
-                                    value="Permissions"
-                                />
-                                <div class="flex flex-wrap mt-1">
-                                    <div
-                                        v-for="permission in permissions"
-                                        :key="permission.id"
-                                        class="mr-4"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            :id="'permission-' + permission.id"
-                                            :value="permission.name"
-                                            v-model="form.permissions"
-                                            class="mr-1"
-                                        />
-                                        <label
-                                            :for="'permission-' + permission.id"
-                                            >{{ permission.name }}</label
-                                        >
-                                    </div>
-                                </div>
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.permissions"
-                                />
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.department"
+                        >
+                            {{ form.errors.department }}
+                        </div>
+                    </FormField>
+                    <FormField
+                        label="Password"
+                        :class="{ 'text-red-400': form.errors.password }"
+                    >
+                        <FormControl
+                            v-model="form.password"
+                            type="password"
+                            placeholder="Enter Password"
+                            :error="form.errors.password"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.password"
+                            >
+                                {{ form.errors.password }}
                             </div>
+                        </FormControl>
+                    </FormField>
 
-                            <div class="mt-4">
-                                <InputLabel for="password" value="Password" />
-
-                                <TextInput
-                                    id="password"
-                                    type="password"
-                                    class="mt-1 block w-full"
-                                    v-model="form.password"
-                                    required
-                                    autocomplete="new-password"
-                                />
-
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.password"
-                                />
+                    <FormField
+                        label="Password Confirmation"
+                        :class="{ 'text-red-400': form.errors.password }"
+                    >
+                        <FormControl
+                            v-model="form.password_confirmation"
+                            type="password"
+                            placeholder="Enter Password Confirmation"
+                            :error="form.errors.password"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.password"
+                            >
+                                {{ form.errors.password }}
                             </div>
-
-                            <div class="mt-4">
-                                <InputLabel
-                                    for="password_confirmation"
-                                    value="Confirm Password"
-                                />
-
-                                <TextInput
-                                    id="password_confirmation"
-                                    type="password"
-                                    class="mt-1 block w-full"
-                                    v-model="form.password_confirmation"
-                                    required
-                                    autocomplete="new-password"
-                                />
-
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.password_confirmation"
-                                />
-                            </div>
-
-                            <div class="flex items-center justify-end mt-4">
-                                <Link
-                                    :href="route('login')"
-                                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                >
-                                    Already registered?
-                                </Link>
-
-                                <PrimaryButton
-                                    class="ms-4"
-                                    :class="{ 'opacity-25': form.processing }"
-                                    :disabled="form.processing"
-                                >
-                                    Create
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                        </FormControl>
+                    </FormField>
+                    <BaseDivider />
+                    <FormField label="Roles">
+                        <FormControl
+                            v-model="form.role"
+                            :options="props.roles"
+                        />
+                    </FormField>
+                    <FormField label="Permissions" wrap-body>
+                        <FormCheckRadioGroup
+                            v-model="form.permissions"
+                            name="roles"
+                            :options="props.permissions"
+                        />
+                    </FormField>
+                    <template #footer>
+                        <BaseButtons>
+                            <BaseButton
+                                type="submit"
+                                color="info"
+                                label="Submit"
+                                :class="{ 'opacity-25': form.processing }"
+                                :disabled="form.processing"
+                            />
+                        </BaseButtons>
+                    </template>
+                </CardBox>
+            </SectionMain>
         </AuthenticatedLayout>
     </div>
 </template>

@@ -3,7 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import SectionMain from "@/Components/SectionMain.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
-import { IdentificationIcon } from "@heroicons/vue/24/outline";
+import { mdiCardAccountDetails } from "@mdi/js";
 import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
@@ -20,7 +20,7 @@ const props = defineProps({
         <AuthenticatedLayout>
             <SectionMain>
                 <SectionTitleLineWithButton
-                    :icon="IdentificationIcon"
+                    :icon="mdiCardAccountDetails"
                     title="Users"
                     main
                 >

@@ -5,6 +5,7 @@ import TableCheckboxCell from "@/Components/TableCheckboxCell.vue";
 import BaseLevel from "@/Components/BaseLevel.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import BaseButton from "@/Components/BaseButton.vue";
+import { mdiTrashCan, mdiTextBoxEdit } from "@mdi/js";
 import { EyeIcon, TrashIcon, CheckCircleIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
@@ -159,14 +160,14 @@ const getCellContent = (action, row) => {
                         <BaseButton
                             v-if="permissions.edit"
                             color="info"
-                            :icon="EyeIcon"
+                            :icon="mdiTextBoxEdit"
                             small
                             @click="isModalActive = true"
                         />
                         <BaseButton
                             v-if="permissions.delete"
                             color="danger"
-                            :icon="TrashIcon"
+                            :icon="mdiTrashCan"
                             small
                             @click="isModalDangerActive = true"
                         />

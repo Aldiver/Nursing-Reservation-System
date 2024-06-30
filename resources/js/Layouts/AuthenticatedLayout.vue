@@ -12,7 +12,11 @@ import {
     MoonIcon,
     HomeIcon,
 } from "@heroicons/vue/24/outline";
-import { mdiViewDashboardOutline } from "@mdi/js";
+import {
+    mdiViewDashboardOutline,
+    mdiCardAccountDetails,
+    mdiSecurity,
+} from "@mdi/js";
 
 const isSidebarOpen = ref(false);
 const isDarkMode = ref(false);
@@ -50,7 +54,7 @@ const navItems = [
                 active: false,
                 label: "Users",
                 children: [],
-                icon: mdiViewDashboardOutline,
+                icon: mdiCardAccountDetails,
             },
             {
                 href: "admin.departments.index",
@@ -67,7 +71,7 @@ const navItems = [
                 icon: mdiViewDashboardOutline,
             },
         ],
-        icon: mdiViewDashboardOutline,
+        icon: mdiSecurity,
     },
     {
         href: "reservations.index",

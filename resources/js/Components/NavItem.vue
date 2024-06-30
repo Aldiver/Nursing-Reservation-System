@@ -1,9 +1,9 @@
 <script setup>
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/vue";
-import NavLink from "@/Components/NavLink.vue";
 import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 import BaseIcon from "./BaseIcon.vue";
 import { computed } from "vue";
+import { Link } from "@inertiajs/vue3";
 
 const props = defineProps({
     item: {
@@ -27,29 +27,22 @@ const hasActiveChild = computed(() => {
 });
 </script>
 <template>
-    <NavLink
+    <Link
         v-if="!item.children.length"
         :class="[
             'group flex w-full items-center rounded-md space-x-2 px-4 py-2 text-sm text-gray-50 hover:text-gray-50',
             'hover:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-800',
             item.active
-                ? 'font-semibold text-gray-800'
-                : 'font-medium text-gray-600',
+                ? 'font-semibold text-gray-50 bg-gray-700'
+                : 'font-medium text-gray-50',
         ]"
         :active="route().current(item.href)"
         :href="route(item.href)"
     >
         <BaseIcon v-if="icon" :path="icon" />
-        <!-- <component
-            :class="[
-                'mr-2 h-6 w-6 shrink-0 group-hover:text-gray-600',
-                item.active ? 'text-gray-600' : 'text-gray-400',
-            ]"
-            :is="item.icon"
-            v-if="item.icon"
-        ></component> -->
+
         <span>{{ item.label }}</span>
-    </NavLink>
+    </Link>
 
     <Disclosure v-else v-slot="{ open }" :default-open="hasActiveChild">
         <DisclosureButton
