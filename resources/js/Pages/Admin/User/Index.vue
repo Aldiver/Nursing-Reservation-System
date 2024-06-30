@@ -43,7 +43,7 @@ const props = defineProps({
                             :columns="columns"
                             :rows="users"
                             :permissions="permissions"
-                            delete_route="admin.user.delete"
+                            delete_route="admin.users.delete"
                         />
                     </CardBox>
                 </div>
