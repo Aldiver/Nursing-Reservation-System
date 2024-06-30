@@ -6,16 +6,15 @@ import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import NavItem from "@/Components/NavItem.vue";
 import { Link } from "@inertiajs/vue3";
-import {
-    BellIcon,
-    SunIcon,
-    MoonIcon,
-    HomeIcon,
-} from "@heroicons/vue/24/outline";
+import { BellIcon, SunIcon, MoonIcon } from "@heroicons/vue/24/outline";
 import {
     mdiViewDashboardOutline,
     mdiCardAccountDetails,
     mdiSecurity,
+    mdiListBox,
+    mdiInvoiceTextClock,
+    mdiClipboardList,
+    mdiOfficeBuildingMarkerOutline,
 } from "@mdi/js";
 
 const isSidebarOpen = ref(false);
@@ -61,14 +60,14 @@ const navItems = [
                 active: false,
                 label: "Departments",
                 children: [],
-                icon: mdiViewDashboardOutline,
+                icon: mdiClipboardList,
             },
             {
                 href: "admin.venues.index",
                 active: false,
                 label: "Venues",
                 children: [],
-                icon: mdiViewDashboardOutline,
+                icon: mdiOfficeBuildingMarkerOutline,
             },
         ],
         icon: mdiSecurity,
@@ -78,14 +77,14 @@ const navItems = [
         active: false,
         label: "Reservations",
         children: [],
-        icon: mdiViewDashboardOutline,
+        icon: mdiListBox,
     },
     {
         href: "admin.schedules.index",
         active: false,
         label: "Schedules",
         children: [],
-        icon: mdiViewDashboardOutline,
+        icon: mdiInvoiceTextClock,
     },
 ];
 </script>

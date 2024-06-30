@@ -140,4 +140,19 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index');
     }
+
+    public function destroy(User $user)
+    {
+        // Check if the user trying to delete is the super admin
+        if ($user->email === 'superadmin@example.com') {
+            return redirect()->back()
+                         ->with('error', __('Cannot delete super admin user.'));
+        }
+
+        // Proceed with deleting the user if not the super admin
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+                        ->with('message', __('User deleted successfully'));
+    }
 }

@@ -3,7 +3,8 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import SectionMain from "@/Components/SectionMain.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
-import { mdiCardAccountDetails } from "@mdi/js";
+import NotificationBar from "@/Components/NotificationBar.vue";
+import { mdiCardAccountDetails, mdiAlertBoxOutline } from "@mdi/js";
 import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
@@ -28,6 +29,13 @@ const props = defineProps({
                         <Link href="/admin/users/create">Add</Link>
                     </PrimaryButton>
                 </SectionTitleLineWithButton>
+                <NotificationBar
+                    v-if="$page.props.flash.message"
+                    color="success"
+                    :icon="mdiAlertBoxOutline"
+                >
+                    {{ $page.props.flash.message }}
+                </NotificationBar>
                 <div class="py-12">
                     <CardBox class="mb-6" has-table>
                         <TableComponent
@@ -35,6 +43,7 @@ const props = defineProps({
                             :columns="columns"
                             :rows="users"
                             :permissions="permissions"
+                            delete_route="admin.user.delete"
                         />
                     </CardBox>
                 </div>

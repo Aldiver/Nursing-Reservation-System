@@ -18,7 +18,7 @@ return new class () extends Migration {
             $table->json('purpose')->nullable();
             $table->boolean('isNoted')->default(false);
             $table->boolean('isApproved')->default(false);
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('department_id')->nullable()->constrained('departments');
             $table->foreignId('noted_by')->nullable()->constrained('users');
             $table->foreignId('approved_by')->nullable()->constrained('users');

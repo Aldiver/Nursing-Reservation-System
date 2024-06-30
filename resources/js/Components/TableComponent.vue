@@ -6,6 +6,7 @@ import BaseLevel from "@/Components/BaseLevel.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import BaseButton from "@/Components/BaseButton.vue";
 import { mdiTrashCan, mdiTextBoxEdit } from "@mdi/js";
+import { useForm } from "@inertiajs/vue3";
 import { EyeIcon, TrashIcon, CheckCircleIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
@@ -16,6 +17,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    delete_route: String,
 });
 
 const isModalActive = ref(false);
@@ -81,6 +83,18 @@ const getCellContent = (action, row) => {
     }
     return "";
 };
+
+const userIdToDelete = ref(0);
+
+const confirmDelete = (userId) => {
+    userIdToDelete.value = userId;
+    isModalDangerActive.value = true;
+};
+
+const formDelete = useForm({});
+function destroy() {
+    formDelete.delete(route(props.delete_route, userIdToDelete.value));
+}
 </script>
 
 <template>
@@ -94,6 +108,7 @@ const getCellContent = (action, row) => {
         title="Please confirm"
         button="danger"
         has-cancel
+        @confirm="destroy"
     >
         <p>Are you sure you want to delete this item?</p>
     </CardBoxModal>
@@ -169,7 +184,7 @@ const getCellContent = (action, row) => {
                             color="danger"
                             :icon="mdiTrashCan"
                             small
-                            @click="isModalDangerActive = true"
+                            @click="confirmDelete(row.id)"
                         />
                     </BaseButtons>
                 </td>

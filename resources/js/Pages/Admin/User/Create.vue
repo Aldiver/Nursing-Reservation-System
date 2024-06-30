@@ -41,11 +41,11 @@ const form = useForm({
     department: "",
 });
 
-const submit = () => {
-    form.post(route("admin.users.store"), {
-        onFinish: () => form.reset("password", "password_confirmation"),
-    });
-};
+// const submit = () => {
+//     form.post(route("admin.users.store"), {
+//         onFinish: () => form.reset("password", "password_confirmation"),
+//     });
+// };
 </script>
 
 <template>

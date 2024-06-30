@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { XMarkIcon } from "@heroicons/vue/24/outline";
+import { mdiClose } from "@mdi/js";
 import BaseButton from "@/Components/BaseButton.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import CardBox from "@/Components/CardBox.vue";
@@ -20,7 +20,6 @@ const props = defineProps({
         type: String,
         default: "Done",
     },
-    hasButton: Boolean,
     hasCancel: Boolean,
     modelValue: {
         type: [String, Number, Boolean],
@@ -40,11 +39,7 @@ const confirmCancel = (mode) => {
     emit(mode);
 };
 
-const confirmClicked = () => {
-    emit("confirm");
-};
-
-const confirm = () => confirmClicked();
+const confirm = () => confirmCancel("confirm");
 
 const cancel = () => confirmCancel("cancel");
 
@@ -59,13 +54,13 @@ window.addEventListener("keydown", (e) => {
     <OverlayLayer v-show="value" @overlay-click="cancel">
         <CardBox
             v-show="value"
-            class="shadow-lg max-h w-5/6 md:3/5 lg:w-3/5 xl:w-4/6 z-50"
+            class="shadow-lg max-h-modal w-11/12 md:w-3/5 lg:w-2/5 xl:w-4/12 z-50"
             is-modal
         >
             <CardBoxComponentTitle :title="title">
                 <BaseButton
                     v-if="hasCancel"
-                    :icon="XMarkIcon"
+                    :icon="mdiClose"
                     color="whiteDark"
                     small
                     rounded-full
@@ -77,7 +72,7 @@ window.addEventListener("keydown", (e) => {
                 <slot />
             </div>
 
-            <template v-if="hasButton" #footer>
+            <template #footer>
                 <BaseButtons>
                     <BaseButton
                         :label="buttonLabel"
