@@ -1,10 +1,8 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm, Link } from "@inertiajs/vue3";
-import { ref, watch, computed } from "vue";
-import TextInput from "@/Components/TextInput.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import InputError from "@/Components/InputError.vue";
+import { ref, watch, computed, watchEffect } from "vue";
+import axios from "axios";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import SectionMain from "@/Components/SectionMain.vue";
 import CardBox from "@/Components/CardBox.vue";
@@ -174,6 +172,39 @@ watch(
         }
     }
 );
+
+// Function to fetch unavailable options from backend
+const fetchUnavailableOptions = async () => {
+    try {
+        const response = await axios.get("/api/getUnavailableOptions", {
+            params: {
+                date: form.date,
+                start_time: form.start_time,
+                end_time: form.end_time,
+            },
+        });
+        return response.data.unavailableOptions;
+    } catch (error) {
+        console.error("Error fetching unavailable options:", error);
+        return [];
+    }
+};
+
+const unavailableOptionsState = ref([]);
+
+// Watch changes in date, start_time, end_time to fetch unavailable options
+watchEffect(() => {
+    fetchUnavailableOptions().then((unavailableOptions) => {
+        console.log("Unavailable Options:", unavailableOptions);
+        unavailableOptionsState.value = unavailableOptions;
+        // Remove any options from form.options that are found in unavailableOptions
+        for (const optionId of unavailableOptions) {
+            if (form.options.includes(optionId)) {
+                form.options = form.options.filter((id) => id !== optionId);
+            }
+        }
+    });
+});
 </script>
 
 <template>
@@ -341,6 +372,11 @@ watch(
                                         :value="option.id"
                                         v-model="form.options"
                                         class="mr-2"
+                                        :disabled="
+                                            unavailableOptionsState.includes(
+                                                option.id
+                                            )
+                                        "
                                         @change="
                                             handleOptionChange(option, $event)
                                         "
@@ -349,8 +385,15 @@ watch(
                                         :for="
                                             'option_' + venue.id + '_' + oIndex
                                         "
-                                        >{{ option.name }}</label
+                                        :class="{
+                                            'text-strikethrough':
+                                                !form.date ||
+                                                !form.start_time ||
+                                                !form.end_time,
+                                        }"
                                     >
+                                        {{ option.name }}
+                                    </label>
                                     <div v-if="option.with_pax">
                                         <FormControl
                                             type="number"

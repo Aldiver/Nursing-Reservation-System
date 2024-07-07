@@ -246,4 +246,41 @@ class ReservationController extends Controller
         $reservation->update(['approved_by' => auth()->id()]);
         return redirect()->route('reservations.index');
     }
+
+    public function getUnavailableOptions(Request $request)
+    {
+        $date = $request->input('date');
+        $startTime = $request->input('start_time');
+        $endTime = $request->input('end_time');
+
+        // Retrieve reservations based on date
+        $query = Reservation::query()
+            ->whereDate('date', $date);
+
+        // If both start and end times are provided, filter for overlapping reservations
+        if ($startTime && $endTime) {
+            $query->where(function ($query) use ($startTime, $endTime) {
+                $query->where(function ($query) use ($startTime, $endTime) {
+                    $query->where('start_time', '>=', $startTime)
+                          ->where('start_time', '<', $endTime);
+                })->orWhere(function ($query) use ($startTime, $endTime) {
+                    $query->where('end_time', '>', $startTime)
+                          ->where('end_time', '<=', $endTime);
+                });
+            });
+        }
+
+        // Fetch the reservations
+        $reservations = $query->get();
+
+        // Prepare unavailable options from reservations
+        $unavailableOptions = [];
+        foreach ($reservations as $reservation) {
+            foreach ($reservation->options as $option) {
+                $unavailableOptions[] = $option->id;
+            }
+        }
+
+        return response()->json(['unavailableOptions' => $unavailableOptions]);
+    }
 }
