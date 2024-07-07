@@ -16,6 +16,7 @@ return new class () extends Migration {
             $table->time('start_time');
             $table->time('end_time');
             $table->json('purpose')->nullable();
+            $table->string('remarks')->nullable();
             $table->boolean('isNoted')->default(false);
             $table->boolean('isApproved')->default(false);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');

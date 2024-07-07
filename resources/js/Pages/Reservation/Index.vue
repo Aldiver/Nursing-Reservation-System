@@ -4,10 +4,10 @@ import PrimaryButton from "@/Components/PrimaryButton.vue";
 import SectionMain from "@/Components/SectionMain.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
 import NotificationBar from "@/Components/NotificationBar.vue";
-import { IdentificationIcon } from "@heroicons/vue/24/outline";
 import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
+import { mdiInvoiceTextClock } from "@mdi/js";
 
 const props = defineProps({
     reservations: Array,
@@ -22,8 +22,8 @@ const props = defineProps({
     <AuthenticatedLayout>
         <SectionMain>
             <SectionTitleLineWithButton
-                :icon="IdentificationIcon"
-                title="Venues"
+                :icon="mdiInvoiceTextClock"
+                title="Reservations"
                 main
             >
                 <PrimaryButton class="ms-4">

@@ -22,13 +22,13 @@ class ReservationController extends Controller
         // Fetch reservations based on permissions
         if ($canNote || $canApprove) {
             $reservations = Reservation::with(['user', 'noter', 'approver'])->get([
-                'id', 'date', 'purpose', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
+                'id', 'date', 'purpose', 'remarks', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
             ]);
         } else {
             $reservations = Reservation::with(['user', 'noter', 'approver'])
                 ->where('user_id', $user->id)
                 ->get([
-                    'id', 'date', 'purpose', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
+                    'id', 'date', 'purpose', 'remarks', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
                 ]);
         }
 
@@ -48,6 +48,7 @@ class ReservationController extends Controller
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
                 'purpose' => $purpose,
+                'remarks' => $reservation->remarks,
                 'options' => implode(', ', $options),
                 'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
                 'noted_by' => optional($reservation->noter)->name,
@@ -62,6 +63,7 @@ class ReservationController extends Controller
             // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Reserved By', 'field' => 'reserved_by'],
             ['label' => 'Purpose', 'field' => 'purpose'],
+            ['label' => 'Remarks', 'field' => 'remarks'],
             ['label' => 'Options', 'field' => 'options'],
             ['label' => 'Reservation Date', 'field' => 'reservation_date'],
             ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note'],
@@ -96,29 +98,57 @@ class ReservationController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        // Define the validation rules
+        $rules = [
             'date' => 'required|date',
             'start_time' => 'required|date_format:h:i A',
             'end_time' => 'required|date_format:h:i A|after:start_time',
             'purpose' => 'nullable|array',
-            'purpose.*' => 'string',
+            'purpose.*' => 'integer',
             'options' => 'required|array',
             'options.*' => 'integer|exists:options,id',
             'pax' => 'nullable|array',
             'pax.*' => 'nullable|integer',
-        ]);
+        ];
 
-        // dd($validatedData);
+        // Add conditional validation rules for purposeType and materials if purpose contains 2
+        if (in_array(2, $request->input('purpose', []))) {
+            $rules['purposeType'] = 'required|string';
+            $rules['materials'] = 'required|string';
+        } else {
+            $rules['purposeType'] = 'nullable|string';
+            $rules['materials'] = 'nullable|string';
+        }
 
+        // Validate the incoming request
+        $validatedData = $request->validate($rules);
+
+        // Convert purpose indices to corresponding strings
+        $purposeMapping = [
+            0 => 'Class',
+            1 => 'Meeting',
+            2 => 'Demonstration/Return Demonstration',
+        ];
+        $purposes = array_map(function ($purpose) use ($purposeMapping) {
+            return $purposeMapping[$purpose] ?? $purpose;
+        }, $validatedData['purpose']);
+
+        // Concatenate purposeType and materials for remarks
+        $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
+            ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' .$validatedData['materials']
+            : '';
+
+        // Convert times to 24-hour format
         $start_time = Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i');
         $end_time = Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i');
 
+        // Validate date constraints for reservation times
         $date = new \DateTime($request->date);
-
         if ($date->format('N') >= 6 && !($date->format('N') == 6 && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
             return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM, and Saturdays from 8 AM to 12 PM.']);
         }
 
+        // Find users with specific roles and permissions
         $noter = User::whereHas('roles', function ($query) {
             $query->where('name', 'Staff');
         })->whereHas('permissions', function ($query) {
@@ -131,6 +161,7 @@ class ReservationController extends Controller
             $query->where('name', 'approver');
         })->first();
 
+        // Create reservation
         $reservation = Reservation::create([
             'date' => $date,
             'start_time' => $start_time,
@@ -140,9 +171,11 @@ class ReservationController extends Controller
             'user_id' => auth()->id(),
             'noted_by' => $noter ? $noter->id : null,
             'approved_by' => $approver ? $approver->id : null,
-            'purpose' => $request->purpose,
+            'purpose' => $purposes,
+            'remarks' => $remarks,
         ]);
 
+        // Attach options with pax to the reservation
         foreach ($validatedData['options'] as $optionId) {
             $reservation->options()->attach($optionId, ['pax' => $validatedData['pax'][$optionId] ?? null]);
         }

@@ -111,7 +111,7 @@ const navItems = [
                         class="flex flex-row h-28 items-center justify-between p-2 border-b-2 border-gray-800"
                     >
                         <div
-                            class="items-center flex-1 lg:text-left lg:pl-6 xl:text-center xl:pl-0"
+                            class="items-center flex-1 lg:text-left xl:text-center xl:pl-0"
                         >
                             <Link
                                 :href="route('dashboard.index')"
@@ -122,9 +122,9 @@ const navItems = [
                                 />
                             </Link>
                         </div>
-                        <button
+                        <!-- <button
                             @click="isSidebarOpen = false"
-                            class="lg:inline-block xl:hidden"
+                            class="lg:inline-block md:hidden"
                         >
                             <svg
                                 class="w-6 h-6 text-gray-500 dark:text-gray-300"
@@ -139,7 +139,7 @@ const navItems = [
                                     d="M6 18L18 6M6 6l12 12"
                                 />
                             </svg>
-                        </button>
+                        </button> -->
                     </div>
 
                     <div class="flex-1 overflow-y-auto">

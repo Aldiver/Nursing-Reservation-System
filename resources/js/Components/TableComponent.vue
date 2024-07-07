@@ -5,9 +5,8 @@ import TableCheckboxCell from "@/Components/TableCheckboxCell.vue";
 import BaseLevel from "@/Components/BaseLevel.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import BaseButton from "@/Components/BaseButton.vue";
-import { mdiTrashCan, mdiTextBoxEdit } from "@mdi/js";
+import { mdiTrashCan, mdiTextBoxEdit, mdiCheckCircleOutline } from "@mdi/js";
 import { useForm } from "@inertiajs/vue3";
-import { EyeIcon, TrashIcon, CheckCircleIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
     checkable: Boolean,
@@ -145,7 +144,7 @@ function destroy() {
                             v-if="shouldDisplayNoteButton(column.action, row)"
                             :href="route(`reservation.note`, row.id)"
                             color="info"
-                            :icon="CheckCircleIcon"
+                            :icon="mdiCheckCircleOutline"
                             small
                         />
                         <!-- Approve Button Logic -->
@@ -155,7 +154,7 @@ function destroy() {
                             "
                             :href="route(`reservation.approve`, row.id)"
                             color="info"
-                            :icon="CheckCircleIcon"
+                            :icon="mdiCheckCircleOutline"
                             small
                         />
                         <!-- Pending or Noted/Approved Display Logic -->
@@ -164,7 +163,14 @@ function destroy() {
                         </span>
                     </template>
                     <template v-else>
-                        {{ row[column.field] }}
+                        <span v-if="column.field != 'remarks'">
+                            {{ row[column.field] }}
+                        </span>
+                        <span v-else>
+                            <pre class="font-figtree">{{
+                                row[column.field]
+                            }}</pre>
+                        </span>
                     </template>
                 </td>
                 <td
@@ -207,3 +213,8 @@ function destroy() {
         </BaseLevel>
     </div>
 </template>
+<style scoped>
+.font-figtree {
+    font-family: "Figtree", ui-sans-serif;
+}
+</style>

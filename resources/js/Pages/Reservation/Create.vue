@@ -1,11 +1,21 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, Link } from "@inertiajs/vue3";
 import { ref, watch, computed } from "vue";
 import TextInput from "@/Components/TextInput.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import InputError from "@/Components/InputError.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
+import SectionMain from "@/Components/SectionMain.vue";
+import CardBox from "@/Components/CardBox.vue";
+import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
+import FormField from "@/Components/FormField.vue";
+import FormControl from "@/Components/FormControl.vue";
+import FormCheckRadioGroup from "@/Components/FormCheckRadioGroup.vue";
+import BaseDivider from "@/Components/BaseDivider.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import BaseButtons from "@/Components/BaseButtons.vue";
+import { mdiInvoiceTextClock } from "@mdi/js";
 
 const props = defineProps({
     user: Object,
@@ -17,6 +27,8 @@ const form = useForm({
     date: "",
     start_time: "",
     end_time: "",
+    purposeType: "",
+    materials: "",
     purpose: [],
     options: [],
     pax: {},
@@ -169,226 +181,202 @@ watch(
         <Head title="Create Reservation" />
 
         <AuthenticatedLayout>
-            <template #header>
-                <div class="flex items-center justify-between">
-                    <h2
-                        class="font-semibold text-xl text-gray-800 leading-tight"
+            <SectionMain>
+                <SectionTitleLineWithButton
+                    :icon="mdiInvoiceTextClock"
+                    title="Create Reservation"
+                    main
+                >
+                    <PrimaryButton class="ms-4">
+                        <Link href="/reservations">Back</Link>
+                    </PrimaryButton>
+                </SectionTitleLineWithButton>
+            </SectionMain>
+            <CardBox
+                is-form
+                @submit.prevent="form.post(route('reservations.store'))"
+            >
+                <FormField
+                    label="Name"
+                    :class="{ 'text-red-400': form.errors.date }"
+                >
+                    <FormControl
+                        v-model="form.date"
+                        type="date"
+                        :error="form.errors.date"
                     >
-                        Create Reservation
-                    </h2>
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.date"
+                        >
+                            {{ form.errors.date }}
+                        </div>
+                    </FormControl></FormField
+                >
+                <div class="mt-4 flex space-x-4">
+                    <FormField
+                        class="flex-1"
+                        label="Start Time"
+                        :class="{ 'text-red-400': form.errors.start_time }"
+                    >
+                        <FormControl
+                            v-model="form.start_time"
+                            :options="startTimeOptions"
+                            :error="form.errors.start_time"
+                            :disabled="!form.date"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.start_time"
+                            >
+                                {{ form.errors.start_time }}
+                            </div>
+                        </FormControl></FormField
+                    >
+                    <FormField
+                        class="flex-1"
+                        label="End Time"
+                        :class="{ 'text-red-400': form.errors.end_time }"
+                    >
+                        <FormControl
+                            v-model="form.end_time"
+                            :options="endTimeOptions"
+                            :error="form.errors.end_time"
+                            :disabled="!form.start_time"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.end_time"
+                            >
+                                {{ form.errors.end_time }}
+                            </div>
+                        </FormControl></FormField
+                    >
                 </div>
-            </template>
-
-            <div class="py-12">
-                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div
-                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6"
+                <FormField label="Purpose" wrap-body>
+                    <FormCheckRadioGroup
+                        v-model="form.purpose"
+                        name="purpose"
+                        :options="purposeOptions"
+                    />
+                </FormField>
+                <FormField
+                    label="Others"
+                    :class="{ 'text-red-400': form.errors.purpose }"
+                >
+                    <FormControl
+                        v-model="otherPurpose"
+                        type="text"
+                        placeholder="Others"
+                        :error="form.errors.purpose"
                     >
-                        <form @submit.prevent="submit">
-                            <div>
-                                <InputLabel for="date" value="Date" />
-                                <TextInput
-                                    id="date"
-                                    type="date"
-                                    class="mt-1 block w-full"
-                                    v-model="form.date"
-                                    required
-                                />
-                                <InputError
-                                    :message="form.errors.date"
-                                    class="mt-2"
-                                />
-                            </div>
-
-                            <!-- Start and End Time -->
-                            <div class="mt-4 flex space-x-4">
-                                <div class="flex-1">
-                                    <InputLabel
-                                        for="start_time"
-                                        value="Start Time"
-                                    />
-                                    <select
-                                        id="start_time"
-                                        class="mt-1 block w-full"
-                                        v-model="form.start_time"
-                                        :disabled="!form.date"
-                                        required
-                                    >
-                                        <option value="" disabled>
-                                            Select start time
-                                        </option>
-                                        <template
-                                            v-for="time in startTimeOptions"
-                                            :key="time"
-                                        >
-                                            <option :value="time">
-                                                {{ time }}
-                                            </option>
-                                        </template>
-                                    </select>
-                                    <InputError
-                                        :message="form.errors.start_time"
-                                        class="mt-2"
-                                    />
-                                </div>
-
-                                <div class="flex-1">
-                                    <InputLabel
-                                        for="end_time"
-                                        value="End Time"
-                                    />
-                                    <select
-                                        id="end_time"
-                                        class="mt-1 block w-full"
-                                        v-model="form.end_time"
-                                        :disabled="!form.start_time"
-                                        required
-                                    >
-                                        <option value="" disabled>
-                                            Select end time
-                                        </option>
-                                        <template
-                                            v-for="time in endTimeOptions"
-                                            :key="time"
-                                        >
-                                            <option :value="time">
-                                                {{ time }}
-                                            </option>
-                                        </template>
-                                    </select>
-                                    <InputError
-                                        :message="form.errors.end_time"
-                                        class="mt-2"
-                                    />
-                                </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <InputLabel for="purpose" value="Purpose" />
-                                <div
-                                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2"
-                                >
-                                    <template
-                                        v-for="(
-                                            option, index
-                                        ) in purposeOptions"
-                                        :key="index"
-                                    >
-                                        <div>
-                                            <input
-                                                type="checkbox"
-                                                :id="'purpose_' + index"
-                                                :value="option"
-                                                v-model="form.purpose"
-                                                class="mr-2"
-                                            />
-                                            <label :for="'purpose_' + index">{{
-                                                option
-                                            }}</label>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class="mt-2">
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.purpose"
+                        >
+                            {{ form.errors.purpose }}
+                        </div>
+                    </FormControl></FormField
+                >
+                <FormField
+                    v-if="form.purpose.includes(2)"
+                    label="Procedure Type"
+                    :class="{ 'text-red-400': form.errors.purposeType }"
+                >
+                    <FormControl
+                        v-model="form.purposeType"
+                        type="text"
+                        placeholder="Procedure Type"
+                        :error="form.errors.purposeType"
+                        required
+                    >
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.purposeType"
+                        >
+                            {{ form.errors.purposeType }}
+                        </div>
+                    </FormControl>
+                </FormField>
+                <FormField
+                    v-if="form.purpose.includes(2)"
+                    label="Materials"
+                    :class="{ 'text-red-400': form.errors.materials }"
+                >
+                    <FormControl
+                        v-model="form.materials"
+                        type="textarea"
+                        placeholder="Materials"
+                        :error="form.errors.materials"
+                        required
+                    >
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.materials"
+                        >
+                            {{ form.errors.materials }}
+                        </div>
+                    </FormControl>
+                </FormField>
+                <div class="mt-4">
+                    <h2 class="text-lg font-semibold mb-2">Venue</h2>
+                    <FormField
+                        v-for="(venue, index) in props.venues"
+                        :key="index"
+                        :label="venue.name"
+                    >
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2"
+                        >
+                            <div
+                                v-for="(option, oIndex) in venue.options"
+                                :key="oIndex"
+                            >
+                                <div>
                                     <input
-                                        type="text"
-                                        id="others"
-                                        v-model="otherPurpose"
-                                        placeholder="Others"
-                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        type="checkbox"
+                                        :id="
+                                            'option_' + venue.id + '_' + oIndex
+                                        "
+                                        :value="option.id"
+                                        v-model="form.options"
+                                        class="mr-2"
+                                        @change="
+                                            handleOptionChange(option, $event)
+                                        "
                                     />
-                                </div>
-                                <InputError
-                                    :message="form.errors.purpose"
-                                    class="mt-2"
-                                />
-                            </div>
-
-                            <div class="mt-4">
-                                <InputLabel for="venue_id" value="Venue" />
-                                <div
-                                    v-for="(venue, index) in props.venues"
-                                    :key="index"
-                                >
-                                    <div class="mt-4 border rounded p-4">
-                                        <h3 class="text-lg font-semibold">
-                                            {{ venue.name }}
-                                        </h3>
-                                        <div
-                                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2"
-                                        >
-                                            <div
-                                                v-for="(
-                                                    option, oIndex
-                                                ) in venue.options"
-                                                :key="oIndex"
-                                            >
-                                                <div>
-                                                    <input
-                                                        type="checkbox"
-                                                        :id="
-                                                            'option_' +
-                                                            venue.id +
-                                                            '_' +
-                                                            oIndex
-                                                        "
-                                                        :value="option.id"
-                                                        v-model="form.options"
-                                                        class="mr-2"
-                                                        @change="
-                                                            handleOptionChange(
-                                                                option,
-                                                                $event
-                                                            )
-                                                        "
-                                                    />
-                                                    <label
-                                                        :for="
-                                                            'option_' +
-                                                            venue.id +
-                                                            '_' +
-                                                            oIndex
-                                                        "
-                                                        >{{
-                                                            option.name
-                                                        }}</label
-                                                    >
-                                                    <div v-if="option.with_pax">
-                                                        <input
-                                                            type="number"
-                                                            v-if="
-                                                                isOptionSelected(
-                                                                    option.id
-                                                                )
-                                                            "
-                                                            v-model="
-                                                                form.pax[
-                                                                    option.id
-                                                                ]
-                                                            "
-                                                            class="mt-2 ml-4 p-2 border rounded"
-                                                            placeholder="Enter number of people"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <label
+                                        :for="
+                                            'option_' + venue.id + '_' + oIndex
+                                        "
+                                        >{{ option.name }}</label
+                                    >
+                                    <div v-if="option.with_pax">
+                                        <FormControl
+                                            type="number"
+                                            v-if="isOptionSelected(option.id)"
+                                            v-model="form.pax[option.id]"
+                                            class="mt-2 ml-4 p-2"
+                                            placeholder="Enter number of people"
+                                        />
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="flex items-center justify-end mt-4">
-                                <PrimaryButton
-                                    class="ms-4"
-                                    :class="{ 'opacity-25': form.processing }"
-                                    :disabled="form.processing"
-                                >
-                                    Create
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                    </FormField>
                 </div>
-            </div>
+                <template #footer>
+                    <BaseButtons>
+                        <BaseButton
+                            type="submit"
+                            color="info"
+                            label="Submit"
+                            :class="{ 'opacity-25': form.processing }"
+                            :disabled="form.processing"
+                        />
+                    </BaseButtons>
+                </template>
+            </CardBox>
         </AuthenticatedLayout>
     </div>
 </template>

@@ -33,7 +33,7 @@ const props = defineProps({
 const form = useForm({
     name: "",
     email: "",
-    contact: "",
+    contact_number: "",
     password: "",
     password_confirmation: "",
     role: "",
@@ -87,19 +87,19 @@ const form = useForm({
                     >
                     <FormField
                         label="Contact"
-                        :class="{ 'text-red-400': form.errors.contact }"
+                        :class="{ 'text-red-400': form.errors.contact_number }"
                     >
                         <FormControl
-                            v-model="form.contact"
+                            v-model="form.contact_number"
                             type="text"
                             placeholder="Enter Contact Number"
-                            :error="form.errors.contact"
+                            :error="form.errors.contact_number"
                         >
                             <div
                                 class="text-red-400 text-sm"
-                                v-if="form.errors.contact"
+                                v-if="form.errors.contact_number"
                             >
-                                {{ form.errors.contact }}
+                                {{ form.errors.contact_number }}
                             </div>
                         </FormControl></FormField
                     >
