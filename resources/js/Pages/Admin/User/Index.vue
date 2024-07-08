@@ -14,6 +14,11 @@ const props = defineProps({
     columns: Array,
     permissions: Object,
 });
+
+const controller_routes = {
+    edit: "admin.users.edit",
+    delete: "admin.users.destroy",
+};
 </script>
 <template>
     <div>
@@ -43,7 +48,7 @@ const props = defineProps({
                             :columns="columns"
                             :rows="users"
                             :permissions="permissions"
-                            delete_route="admin.users.destroy"
+                            :routes="controller_routes"
                         />
                     </CardBox>
                 </div>

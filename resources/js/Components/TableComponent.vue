@@ -16,7 +16,10 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-    delete_route: String,
+    routes: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
 const isModalActive = ref(false);
@@ -92,16 +95,11 @@ const confirmDelete = (userId) => {
 
 const formDelete = useForm({});
 function destroy() {
-    formDelete.delete(route(props.delete_route, userIdToDelete.value));
+    formDelete.delete(route(props.routes.delete, userIdToDelete.value));
 }
 </script>
 
 <template>
-    <CardBoxModal v-model="isModalActive" title="Edit Row">
-        <!-- Add form for editing row here -->
-        <p>Editing row content here</p>
-    </CardBoxModal>
-
     <CardBoxModal
         v-model="isModalDangerActive"
         title="Please confirm"
@@ -182,8 +180,8 @@ function destroy() {
                             v-if="permissions.edit"
                             color="info"
                             :icon="mdiTextBoxEdit"
+                            :href="route(routes.edit, row.id)"
                             small
-                            @click="isModalActive = true"
                         />
                         <BaseButton
                             v-if="permissions.delete"

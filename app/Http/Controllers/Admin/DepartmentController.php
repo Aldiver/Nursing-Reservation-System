@@ -66,7 +66,8 @@ class DepartmentController extends Controller
 
         Department::create($request->all());
 
-        return redirect()->route('admin.departments.index');
+        return redirect()->route('admin.departments.index')->with('message', __('Department created successfully'));
+        ;
     }
 
     /**
@@ -82,7 +83,7 @@ class DepartmentController extends Controller
      */
     public function edit(Department $department)
     {
-        return inertia('Admin/Departments/Edit', ['department' => $department]);
+        return inertia('Admin/Department/Edit', ['department' => $department]);
     }
 
     /**
@@ -96,7 +97,8 @@ class DepartmentController extends Controller
 
         $department->update($request->all());
 
-        return redirect()->route('admin.departments.index');
+        return redirect()->route('admin.departments.index')->with('message', __('Department updated successfully'));
+        ;
     }
 
     /**

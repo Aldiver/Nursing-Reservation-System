@@ -27,16 +27,27 @@ const formatTime = (date, time) => {
 };
 
 const events = ref(
-    props.reservations.map((reservation) => ({
-        title: reservation.purpose.join(", "),
-        with: reservation.user.name,
-        id: reservation.id,
-        time: {
-            start: formatTime(reservation.date, reservation.start_time),
-            end: formatTime(reservation.date, reservation.end_time),
-        },
-        description: reservation.purpose.toString(),
-    }))
+    props.reservations.map((reservation) => {
+        const purposeData = reservation.purpose;
+        const purposes = purposeData.purpose || [];
+        const others = purposeData.others;
+
+        // Combine purposes and others
+        if (others) {
+            purposes.push(`others: ${others}`);
+        }
+
+        return {
+            title: purposes.join(", "),
+            with: reservation.user.name,
+            id: reservation.id,
+            time: {
+                start: formatTime(reservation.date, reservation.start_time),
+                end: formatTime(reservation.date, reservation.end_time),
+            },
+            description: purposes.join(", "),
+        };
+    })
 );
 
 const config = ref({

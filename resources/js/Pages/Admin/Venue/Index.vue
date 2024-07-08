@@ -3,16 +3,19 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import SectionMain from "@/Components/SectionMain.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
-import { IdentificationIcon } from "@heroicons/vue/24/outline";
 import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
-
+import { mdiOfficeBuildingMarkerOutline } from "@mdi/js";
 const props = defineProps({
     venues: Array,
     columns: Array,
     permissions: Object,
 });
+const controller_routes = {
+    edit: "admin.venues.edit",
+    delete: "admin.venues.destroy",
+};
 </script>
 
 <template>
@@ -20,7 +23,7 @@ const props = defineProps({
     <AuthenticatedLayout>
         <SectionMain>
             <SectionTitleLineWithButton
-                :icon="IdentificationIcon"
+                :icon="mdiOfficeBuildingMarkerOutline"
                 title="Venues"
                 main
             >
@@ -35,6 +38,7 @@ const props = defineProps({
                         :columns="columns"
                         :rows="venues"
                         :permissions="permissions"
+                        :routes="controller_routes"
                     />
                 </CardBox>
             </div>

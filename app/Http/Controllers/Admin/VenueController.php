@@ -43,8 +43,8 @@ class VenueController extends Controller
             'delete' => auth()->user()->can('delete'),
         ];
 
-        return inertia('Admin/Department/Index', [
-            'departments' => $venues,
+        return inertia('Admin/Venue/Index', [
+            'venues' => $venues,
             'columns' => $columns,
             'permissions' => $permissions,
         ]);
@@ -70,7 +70,8 @@ class VenueController extends Controller
 
         Venue::create($request->all());
 
-        return redirect()->route('admin.venues.index');
+        return redirect()->route('admin.venues.index')->with('message', __('Venue created successfully'));
+        ;
     }
 
     /**
@@ -86,7 +87,7 @@ class VenueController extends Controller
      */
     public function edit(Venue $venue)
     {
-        return inertia('Admin/Venues/Edit', ['venue' => $venue]);
+        return inertia('Admin/Venue/Edit', ['venue' => $venue]);
     }
 
     /**
@@ -101,7 +102,8 @@ class VenueController extends Controller
 
         $venue->update($request->all());
 
-        return redirect()->route('admin.venues.index');
+        return redirect()->route('admin.venues.index')->with('message', __('Venue updated successfully'));
+        ;
     }
 
     /**

@@ -1,91 +1,91 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
+import CardBox from "@/Components/CardBox.vue";
+import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
+import FormField from "@/Components/FormField.vue";
+import FormControl from "@/Components/FormControl.vue";
+import SectionMain from "@/Components/SectionMain.vue";
+import BaseDivider from "@/Components/BaseDivider.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import BaseButtons from "@/Components/BaseButtons.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
 
+import { mdiOfficeBuildingMarkerOutline } from "@mdi/js";
 const form = useForm({
     name: "",
     description: "",
 });
-
-const submit = () => {
-    form.post(route("admin.venues.store"));
-};
 </script>
 
 <template>
     <div>
         <Head title="Create Venue" />
         <AuthenticatedLayout>
-            <template #header>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Create Venue
-                </h2>
-            </template>
-            <div class="py-12">
-                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div
-                        class="p-6 bg-white overflow-hidden shadow-sm sm:rounded-lg"
+            <SectionMain>
+                <SectionTitleLineWithButton
+                    :icon="mdiOfficeBuildingMarkerOutline"
+                    title="Create Venue"
+                    main
+                >
+                    <PrimaryButton class="ms-4">
+                        <Link href="/admin/venues">Back</Link>
+                    </PrimaryButton>
+                </SectionTitleLineWithButton>
+                <CardBox
+                    is-form
+                    @submit.prevent="form.post(route('admin.venues.store'))"
+                >
+                    <FormField
+                        label="Venue name"
+                        :class="{ 'text-red-400': form.errors.name }"
                     >
-                        <form @submit.prevent="submit">
-                            <div>
-                                <InputLabel for="name" value="Name" />
-
-                                <TextInput
-                                    id="name"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    v-model="form.name"
-                                    required
-                                    autofocus
-                                />
-
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.name"
-                                />
+                        <FormControl
+                            v-model="form.name"
+                            type="text"
+                            placeholder="Enter Name"
+                            :error="form.errors.name"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.name"
+                            >
+                                {{ form.errors.name }}
                             </div>
-
-                            <div class="mt-4">
-                                <InputLabel
-                                    for="description"
-                                    value="Description"
-                                />
-
-                                <TextInput
-                                    id="description"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    v-model="form.description"
-                                    required
-                                />
-
-                                <InputError
-                                    class="mt-2"
-                                    :message="form.errors.description"
-                                />
+                        </FormControl></FormField
+                    >
+                    <FormField
+                        label="Location"
+                        :class="{ 'text-red-400': form.errors.description }"
+                    >
+                        <FormControl
+                            v-model="form.description"
+                            type="text"
+                            placeholder="Enter location descripton"
+                            :error="form.errors.description"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.description"
+                            >
+                                {{ form.errors.description }}
                             </div>
-                            <div class="flex items-center justify-end mt-4">
-                                <Link
-                                    :href="route('admin.venues.index')"
-                                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                >
-                                    Cancel
-                                </Link>
-                                <PrimaryButton
-                                    class="ml-4"
-                                    :class="{ 'opacity-25': form.processing }"
-                                    :disabled="form.processing"
-                                    >Create</PrimaryButton
-                                >
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                        </FormControl></FormField
+                    >
+                    <BaseDivider />
+                    <template #footer>
+                        <BaseButtons>
+                            <BaseButton
+                                type="submit"
+                                color="whiteDark"
+                                label="Submit"
+                                :class="{ 'opacity-25': form.processing }"
+                                :disabled="form.processing"
+                            />
+                        </BaseButtons>
+                    </template>
+                </CardBox>
+            </SectionMain>
         </AuthenticatedLayout>
     </div>
 </template>

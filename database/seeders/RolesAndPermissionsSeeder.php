@@ -36,5 +36,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
         $user->assignRole($admin);
+        $user->givePermissionTo($edit, $delete, $list, $create, $noter, $approver);
     }
 }

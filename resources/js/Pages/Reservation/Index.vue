@@ -7,13 +7,17 @@ import NotificationBar from "@/Components/NotificationBar.vue";
 import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
-import { mdiInvoiceTextClock } from "@mdi/js";
+import { mdiListBox } from "@mdi/js";
 
 const props = defineProps({
     reservations: Array,
     columns: Array,
     permissions: Object,
 });
+const controller_routes = {
+    edit: "reservations.edit",
+    delete: "reservations.destroy",
+};
 </script>
 
 <template>
@@ -22,7 +26,7 @@ const props = defineProps({
     <AuthenticatedLayout>
         <SectionMain>
             <SectionTitleLineWithButton
-                :icon="mdiInvoiceTextClock"
+                :icon="mdiListBox"
                 title="Reservations"
                 main
             >
@@ -44,7 +48,7 @@ const props = defineProps({
                         :columns="columns"
                         :rows="reservations"
                         :permissions="permissions"
-                        delete_route="reservations.destroy"
+                        :routes="controller_routes"
                     />
                 </CardBox>
             </div>

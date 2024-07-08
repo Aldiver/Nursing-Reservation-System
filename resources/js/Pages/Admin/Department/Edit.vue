@@ -1,6 +1,17 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, Link } from "@inertiajs/vue3";
+import SectionMain from "@/Components/SectionMain.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import CardBox from "@/Components/CardBox.vue";
+import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
+import FormField from "@/Components/FormField.vue";
+import FormControl from "@/Components/FormControl.vue";
+import FormCheckRadioGroup from "@/Components/FormCheckRadioGroup.vue";
+import BaseDivider from "@/Components/BaseDivider.vue";
+import BaseButton from "@/Components/BaseButton.vue";
+import BaseButtons from "@/Components/BaseButtons.vue";
+import { mdiClipboardList } from "@mdi/js";
 
 const props = defineProps({
     department: Object,
@@ -9,63 +20,63 @@ const props = defineProps({
 const form = useForm({
     name: props.department.name,
 });
-
-const submit = () => {
-    form.put(route("admin.departments.update", props.department.id));
-};
 </script>
 
 <template>
     <div>
         <Head title="Edit Department" />
         <AuthenticatedLayout>
-            <template #header>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Edit Department
-                </h2>
-            </template>
+            <SectionMain>
+                <SectionTitleLineWithButton
+                    :icon="mdiClipboardList"
+                    title="Edit Department"
+                    main
+                >
+                    <PrimaryButton class="ms-4">
+                        <Link href="/admin/departments">Back</Link>
+                    </PrimaryButton>
+                </SectionTitleLineWithButton>
 
-            <div class="py-12">
-                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div
-                        class="bg-white overflow-hidden shadow-sm sm:rounded-lg"
+                <CardBox
+                    is-form
+                    @submit.prevent="
+                        form.patch(
+                            route('admin.departments.update', department)
+                        )
+                    "
+                >
+                    <FormField
+                        label="Name"
+                        :class="{ 'text-red-400': form.errors.name }"
                     >
-                        <div class="p-6 bg-white border-b border-gray-200">
-                            <form @submit.prevent="submit">
-                                <div>
-                                    <label
-                                        for="name"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Name</label
-                                    >
-                                    <input
-                                        v-model="form.name"
-                                        id="name"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        required
-                                        autofocus
-                                    />
-                                    <div
-                                        v-if="form.errors.name"
-                                        class="mt-2 text-sm text-red-600"
-                                    >
-                                        {{ form.errors.name }}
-                                    </div>
-                                </div>
-                                <div class="mt-6">
-                                    <button
-                                        type="submit"
-                                        class="btn btn-primary"
-                                    >
-                                        Update
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        <FormControl
+                            v-model="form.name"
+                            type="text"
+                            placeholder="Enter Name"
+                            :error="form.errors.name"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.name"
+                            >
+                                {{ form.errors.name }}
+                            </div>
+                        </FormControl></FormField
+                    >
+                    <BaseDivider />
+                    <template #footer>
+                        <BaseButtons>
+                            <BaseButton
+                                type="submit"
+                                color="whiteDark"
+                                label="Update"
+                                :class="{ 'opacity-25': form.processing }"
+                                :disabled="form.processing"
+                            />
+                        </BaseButtons>
+                    </template>
+                </CardBox>
+            </SectionMain>
         </AuthenticatedLayout>
     </div>
 </template>

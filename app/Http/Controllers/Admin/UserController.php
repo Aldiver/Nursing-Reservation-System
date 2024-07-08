@@ -17,7 +17,7 @@ class UserController extends Controller
     {
         $this->middleware('can:list', ['only' => ['index', 'show']]);
         $this->middleware('can:create', ['only' => ['create', 'store']]);
-        $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
+        // $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
         $this->middleware('can:delete', ['only' => ['destroy']]);
     }
     public function index()
@@ -83,6 +83,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'department' => 'required|string|exists:departments,name',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -111,34 +112,88 @@ class UserController extends Controller
         $user->department()->associate($department);
         $user->save();
 
-        return redirect()->route('admin.users.index');
+        return redirect()->route('admin.users.index')->with('message', __('User created successfully'));
+        ;
     }
 
     public function edit(User $user)
     {
-        $roles = Role::all();
-        $userRole = $user->roles->pluck('name')->first();
-        return inertia('Admin/User/Edit', ['user' => $user, 'roles' => $roles, 'userRole' => $userRole]);
+        // Check if the user trying to delete is the super admin
+        if ($user->email === 'superadmin@example.com') {
+            return redirect()->back()
+                         ->with('message', __('Cannot edit super admin user.'));
+        }
+        $roles = Role::all()->map(function ($role) {
+            return [
+                'id' => $role->id,
+                'label' => $role->name,
+            ];
+        });
+
+        $departments = Department::all()->map(function ($department) {
+            return [
+                'id' => $department->id,
+                'label' => $department->name,
+            ];
+        });
+        $permissions = Permission::all()->pluck("name", "id");
+        return inertia('Admin/User/Edit', [
+                'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'contact_number' => $user->contact_number,
+                'email' => $user->email,
+                'roles' => $user->roles->map(function ($role) {
+                    return [
+                        'id' => $role->id ?? null,
+                        'label' => $role->name ?? null,
+                    ];
+                }),
+                'permissions' => $user->permissions->pluck('name', 'id'),
+                'department' => [
+                    'id' => $user->department->id ?? null,
+                    'label' => $user->department->name ?? null,
+                ],
+            ],
+            'roles' => $roles,
+            'permissions' => $permissions,
+            'departments' => $departments,
+        ]);
     }
 
     public function update(Request $request, User $user)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+            'contact_number' => 'nullable|string|max:255',
             'role' => 'required|string|exists:roles,name',
+            'department' => 'required|string|exists:departments,name',
         ]);
+
+        $department = Department::where('name', $request->department)->first();
 
         $user->update([
             'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password ? bcrypt($request->password) : $user->password,
+            'contact_number' => $request->contact_number,
         ]);
 
         $user->syncRoles($request->role);
 
-        return redirect()->route('admin.users.index');
+        // $user->assignRole($request->role);
+
+        if ($request->has('permissions')) {
+            // Fetch permission models based on IDs
+            $permissions = Permission::whereIn('id', $request->permissions)->get();
+
+            // Give permissions to the user
+            $user->syncPermissions($permissions);
+        }
+
+        $user->department()->associate($department);
+        $user->save();
+
+        return redirect()->route('admin.users.index')->with('message', __('User updated successfully'));
+        ;
     }
 
     public function destroy(User $user)

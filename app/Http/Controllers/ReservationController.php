@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ReservationController extends Controller
 {
@@ -20,17 +21,33 @@ class ReservationController extends Controller
         $canApprove = $user->can('approver');
 
         // Fetch reservations based on permissions
-        if ($canNote || $canApprove) {
-            $reservations = Reservation::with(['user', 'noter', 'approver'])->get([
-                'id', 'date', 'purpose', 'remarks', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
-            ]);
-        } else {
-            $reservations = Reservation::with(['user', 'noter', 'approver'])
+        $reservations = ($canNote || $canApprove) ? Reservation::with(['user', 'noter', 'approver'])->get([
+            'id',
+            'date',
+            'purpose',
+            'remarks',
+            'start_time',
+            'end_time',
+            'user_id',
+            'noted_by',
+            'approved_by',
+            'isNoted',
+            'isApproved'
+        ]) : Reservation::with(['user', 'noter', 'approver'])
                 ->where('user_id', $user->id)
                 ->get([
-                    'id', 'date', 'purpose', 'remarks', 'start_time', 'end_time', 'user_id', 'noted_by', 'approved_by', 'isNoted', 'isApproved'
+                    'id',
+                    'date',
+                    'purpose',
+                    'remarks',
+                    'start_time',
+                    'end_time',
+                    'user_id',
+                    'noted_by',
+                    'approved_by',
+                    'isNoted',
+                    'isApproved'
                 ]);
-        }
 
         // Format the reservations
         $formattedReservations = $reservations->map(function ($reservation) {
@@ -40,14 +57,22 @@ class ReservationController extends Controller
             $options = $reservation->options->pluck('name')->toArray();
 
             // Format purpose
-            $purpose = collect($reservation->purpose)->map(function ($item) {
-                return is_array($item) ? $item['value'] : $item;
-            })->implode(', ');
+            $purposeData = is_array($reservation->purpose) ? $reservation->purpose : json_decode($reservation->purpose, true);
+
+            // Extract purposes and others
+            $purposes = $purposeData['purpose'] ?? [];
+            $others = $purposeData['others'] ?? null;
+
+            // Combine purposes and others
+            if ($others) {
+                $purposes[] = "others: $others";
+            }
+            $combinedPurpose = implode(', ', $purposes);
 
             return [
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
-                'purpose' => $purpose,
+                'purpose' => $combinedPurpose,
                 'remarks' => $reservation->remarks,
                 'options' => implode(', ', $options),
                 'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
@@ -105,6 +130,7 @@ class ReservationController extends Controller
             'end_time' => 'required|date_format:h:i A|after:start_time',
             'purpose' => 'nullable|array',
             'purpose.*' => 'integer',
+            'otherPurpose' => 'nullable|string',
             'options' => 'required|array',
             'options.*' => 'integer|exists:options,id',
             'pax' => 'nullable|array',
@@ -133,6 +159,12 @@ class ReservationController extends Controller
             return $purposeMapping[$purpose] ?? $purpose;
         }, $validatedData['purpose']);
 
+        $otherPurpose = $validatedData['otherPurpose'] ?? null;
+
+        $toStore = [
+            'purpose' => $purposes,
+            'others' => $otherPurpose
+        ];
         // Concatenate purposeType and materials for remarks
         $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
             ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' .$validatedData['materials']
@@ -169,9 +201,9 @@ class ReservationController extends Controller
             'isNoted' => false,
             'isApproved' => false,
             'user_id' => auth()->id(),
-            'noted_by' => $noter ? $noter->id : null,
-            'approved_by' => $approver ? $approver->id : null,
-            'purpose' => $purposes,
+            'noted_by' => $noter?->id,
+            'approved_by' => $approver?->id,
+            'purpose' => $toStore,
             'remarks' => $remarks,
         ]);
 
@@ -190,11 +222,23 @@ class ReservationController extends Controller
 
     public function edit(Reservation $reservation)
     {
-        $venues = Venue::all();
-        $noters = User::role('noter')->get();
-        $approvers = User::role('approver')->get();
-        return view('reservations.edit', compact('reservation', 'venues', 'noters', 'approvers'));
+        // Check if the reservation is approved and if the authenticated user has permission to edit
+        if ($reservation->isApproved && Gate::denies('approver')) {
+            return redirect()->back()
+                             ->with('message', __('Only approver can edit this Reservation. Contact administrator for details.'));
+        }
+
+        // Load venues with their options to populate the edit form
+        $venues = Venue::with('options')->get();
+        $reservation->load('options');
+
+        // Return the inertia view for editing the reservation with the reservation and venues data
+        return inertia('Reservation/Edit', [
+            'reservation' => $reservation,
+            'venues' => $venues,
+        ]);
     }
+
 
     public function update(Request $request, Reservation $reservation)
     {
@@ -253,19 +297,20 @@ class ReservationController extends Controller
         $startTime = $request->input('start_time');
         $endTime = $request->input('end_time');
 
-        // Retrieve reservations based on date
+        // Retrieve reservations based on date and approved status
         $query = Reservation::query()
-            ->whereDate('date', $date);
+            ->whereDate('date', $date)
+            ->where('isApproved', true); // Ensure only approved reservations are considered
 
         // If both start and end times are provided, filter for overlapping reservations
         if ($startTime && $endTime) {
             $query->where(function ($query) use ($startTime, $endTime) {
                 $query->where(function ($query) use ($startTime, $endTime) {
                     $query->where('start_time', '>=', $startTime)
-                          ->where('start_time', '<', $endTime);
+                        ->where('start_time', '<', $endTime);
                 })->orWhere(function ($query) use ($startTime, $endTime) {
                     $query->where('end_time', '>', $startTime)
-                          ->where('end_time', '<=', $endTime);
+                        ->where('end_time', '<=', $endTime);
                 });
             });
         }
@@ -273,7 +318,7 @@ class ReservationController extends Controller
         // Fetch the reservations
         $reservations = $query->get();
 
-        // Prepare unavailable options from reservations
+        // Prepare unavailable options from approved reservations
         $unavailableOptions = [];
         foreach ($reservations as $reservation) {
             foreach ($reservation->options as $option) {

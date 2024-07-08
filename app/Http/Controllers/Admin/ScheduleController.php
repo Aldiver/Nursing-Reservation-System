@@ -13,9 +13,50 @@ class ScheduleController extends Controller
      */
     public function index()
     {
-        $reservations = Reservation::with(['user', 'options', 'noter', 'approver'])->get();
-        return inertia('Admin/Schedule/Index', ['reservations' => $reservations,]);
+        $user = auth()->user();
+
+        // Fetch only approved reservations
+        $reservations = Reservation::with(['user'])
+            ->where('isApproved', true)
+            ->orderBy('date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get([
+                'id', 'date', 'start_time', 'end_time', 'user_id', 'isApproved'
+            ]);
+
+        $formattedReservations = $reservations->map(function ($reservation) {
+            $date = \Carbon\Carbon::parse($reservation->date)->format('F j, Y');
+            $startTime = \Carbon\Carbon::parse($reservation->start_time)->format('g:i A');
+            $endTime = \Carbon\Carbon::parse($reservation->end_time)->format('g:i A');
+
+            return [
+                'id' => $reservation->id,
+                'reserved_by' => $reservation->user->name,
+                'date' => $date,
+                'time' => "$startTime - $endTime",
+            ];
+        });
+
+        // Define columns
+        $columns = [
+            ['label' => 'Reserved By', 'field' => 'reserved_by'],
+            ['label' => 'Date', 'field' => 'date'],
+            ['label' => 'Time', 'field' => 'time'],
+        ];
+
+        // Define permissions
+        $permissions = [
+            'edit' => $user->can('edit'),
+            'delete' => $user->can('delete'),
+        ];
+
+        return inertia('Admin/Schedule/Index', [
+            'reservations' => $formattedReservations,
+            'columns' => $columns,
+            'permissions' => $permissions,
+        ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

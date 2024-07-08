@@ -9,6 +9,7 @@ const props = defineProps({
     item: {
         type: Object,
         required: false,
+        default: {},
     },
     icon: {
         type: String,
@@ -77,7 +78,6 @@ const hasActiveChild = computed(() => {
                 :item="child"
                 :parentIsActive="open"
                 :icon="child.icon"
-                children
             />
         </DisclosurePanel>
     </Disclosure>

@@ -174,6 +174,16 @@ if (props.ctrlKFocus) {
             :class="inputElClass"
         />
         <input
+            v-else-if="computedType === 'date'"
+            :id="id"
+            v-model="computedValue"
+            :name="name"
+            :inputmode="inputmode"
+            :required="required"
+            type="date"
+            :class="inputElClass"
+        />
+        <input
             v-else
             :id="id"
             ref="inputEl"
@@ -185,6 +195,7 @@ if (props.ctrlKFocus) {
             :placeholder="placeholder"
             :type="computedType"
             :class="inputElClass"
+            :disabled="disabled"
         />
         <FormControlIcon v-if="icon" :icon="icon" :h="controlIconH" />
         <slot />
