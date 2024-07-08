@@ -8,6 +8,7 @@ import SectionMain from "@/Components/SectionMain.vue";
 import CardBox from "@/Components/CardBox.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
 import FormField from "@/Components/FormField.vue";
+import NotificationBar from "@/Components/NotificationBar.vue";
 import FormControl from "@/Components/FormControl.vue";
 import FormCheckRadioGroup from "@/Components/FormCheckRadioGroup.vue";
 import BaseDivider from "@/Components/BaseDivider.vue";
@@ -18,18 +19,6 @@ import { mdiInvoiceTextClock } from "@mdi/js";
 const props = defineProps({
     reservation: Object,
     venues: Array,
-});
-
-const form = useForm({
-    date: "",
-    start_time: "",
-    end_time: "",
-    purposeType: "",
-    materials: "",
-    purpose: [],
-    otherPurpose: "",
-    options: [],
-    pax: {},
 });
 
 const formatTime12h = (time24h) => {
@@ -53,35 +42,31 @@ const formatTime12h = (time24h) => {
     return `${formattedHours}:${minutes} ${period}`;
 };
 
-onMounted(() => {
-    form.date = props.reservation.date;
-    const formattedStartTime = formatTime12h(props.reservation.start_time);
-    form.start_time =
-        startTimeOptions.value.find((time) => time === formattedStartTime) ||
-        null;
+const form = useForm({
+    date: props.reservation.date,
+    start_time: formatTime12h(props.reservation.start_time),
+    end_time: "",
+    purposeType: "",
+    materials: "",
+    purpose: Object.keys(props.reservation.purpose.purpose).map((key) =>
+        parseInt(key)
+    ),
+    otherPurpose: props.reservation.purpose.others,
+    options: props.reservation.options.map((option) => option.id),
+    pax: {},
+});
 
-    // Find and set end_time in form using formatted time from endTimeOptions
-    const formattedEndTime = formatTime12h(props.reservation.end_time);
-    form.end_time =
-        endTimeOptions.value.find((time) => time === formattedEndTime) || null;
-    // Split remarks into purposeType and materials
+onMounted(() => {
+    form.end_time = formatTime12h(props.reservation.end_time);
     if (props.reservation.remarks) {
         const [string1, string2] = props.reservation.remarks.split("\n\n");
 
-        // Function to extract text after ":" and trim
         const extractText = (str) => str.split(":")[1]?.trim() || str.trim();
 
         form.purposeType = extractText(string1);
         form.materials = extractText(string2);
     }
-
-    form.purpose = Object.keys(props.reservation.purpose.purpose).map((key) =>
-        parseInt(key)
-    ); // Populate purpose array
-    form.otherPurpose = props.reservation.purpose.others; // Populate otherPurpose
-    form.options = props.reservation.options.map((option) => option.id); // Populate options array with IDs
-    form.pax = {}; // Example: Initialize pax object
-    // console.log(form.start_time, form.end_time);
+    // fetchUnavailableOptions;
 });
 
 // Check if an option is selected
@@ -266,7 +251,13 @@ watchEffect(() => {
                         <Link href="/reservations">Back</Link>
                     </PrimaryButton>
                 </SectionTitleLineWithButton>
-
+                <NotificationBar
+                    v-if="$page.props.flash.message || $page.props.flash.error"
+                    :color="$page.props.flash.message ? 'success' : 'danger'"
+                    :icon="mdiAlertBoxOutline"
+                >
+                    {{ $page.props.flash.message ?? $page.props.flash.error }}
+                </NotificationBar>
                 <CardBox
                     is-form
                     @submit.prevent="
@@ -465,6 +456,7 @@ watchEffect(() => {
                             </div>
                         </FormField>
                     </div>
+                    <BaseDivider />
                     <template #footer>
                         <BaseButtons>
                             <BaseButton

@@ -49,7 +49,7 @@ class ReservationController extends Controller
                     'isApproved'
                 ]);
 
-        // Format the reservations
+        // Format the reservations and check for conflicts
         $formattedReservations = $reservations->map(function ($reservation) {
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
@@ -69,6 +69,18 @@ class ReservationController extends Controller
             }
             $combinedPurpose = implode(', ', $purposes);
 
+            // Check for overlapping reservations
+            $allOptions = $reservation->options->pluck('name', 'id')->toArray();
+            $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time);
+            $conflict = !empty($unavailableOptions);
+            $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
+                return in_array($key, $unavailableOptions);
+            }, ARRAY_FILTER_USE_KEY);
+
+            $conflictingOptions = array_values($conflictingOptions);
+
+            // dd($conflictingOptions);
+
             return [
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
@@ -80,6 +92,8 @@ class ReservationController extends Controller
                 'approved_by' => optional($reservation->approver)->name,
                 'isNoted' => $reservation->isNoted,
                 'isApproved' => $reservation->isApproved,
+                'conflict' => $conflict,
+                'conflictData' => implode(', ', $conflictingOptions),
             ];
         });
 
@@ -91,8 +105,8 @@ class ReservationController extends Controller
             ['label' => 'Remarks', 'field' => 'remarks'],
             ['label' => 'Options', 'field' => 'options'],
             ['label' => 'Reservation Date', 'field' => 'reservation_date'],
-            ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note'],
-            ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve'],
+            ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
+            ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
         ];
 
         // Define permissions
@@ -109,7 +123,6 @@ class ReservationController extends Controller
             'permissions' => $permissions,
         ]);
     }
-
 
     public function create()
     {
@@ -232,7 +245,14 @@ class ReservationController extends Controller
         $venues = Venue::with('options')->get();
         $reservation->load('options');
 
-        // Return the inertia view for editing the reservation with the reservation and venues data
+        $allOptions = $reservation->options->pluck('name', 'id')->toArray();
+        $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time);
+        $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
+            return in_array($key, $unavailableOptions);
+        }, ARRAY_FILTER_USE_KEY);
+
+        $conflictingOptions = array_values($conflictingOptions);
+        session()->flash('error', __(implode(', ', array_values($conflictingOptions)) . ' removed from selection list. (Conflicting schedules)'));
         return inertia('Reservation/Edit', [
             'reservation' => $reservation,
             'venues' => $venues,
@@ -297,28 +317,29 @@ class ReservationController extends Controller
         $startTime = $request->input('start_time');
         $endTime = $request->input('end_time');
 
-        // Retrieve reservations based on date and approved status
-        $query = Reservation::query()
-            ->whereDate('date', $date)
-            ->where('isApproved', true); // Ensure only approved reservations are considered
+        $unavailableOptions = $this->getUnavailableOptionsForTimeRange($date, $startTime, $endTime);
 
-        // If both start and end times are provided, filter for overlapping reservations
+        return response()->json(['unavailableOptions' => $unavailableOptions]);
+    }
+
+    private function getUnavailableOptionsForTimeRange($date, $startTime, $endTime)
+    {
+        $checkOverlap = function ($a, $b, $c, $d) {
+            return max($a, $c) < min($b, $d);
+        };
+
+        $query = Reservation::query()
+        ->where('isApproved', true)
+            ->whereDate('date', $date);
+
         if ($startTime && $endTime) {
-            $query->where(function ($query) use ($startTime, $endTime) {
-                $query->where(function ($query) use ($startTime, $endTime) {
-                    $query->where('start_time', '>=', $startTime)
-                        ->where('start_time', '<', $endTime);
-                })->orWhere(function ($query) use ($startTime, $endTime) {
-                    $query->where('end_time', '>', $startTime)
-                        ->where('end_time', '<=', $endTime);
-                });
+            $query->where(function ($query) use ($startTime, $endTime, $checkOverlap) {
+                $checkOverlap('start_time', 'end_time', $startTime, $endTime);
             });
         }
 
-        // Fetch the reservations
         $reservations = $query->get();
 
-        // Prepare unavailable options from approved reservations
         $unavailableOptions = [];
         foreach ($reservations as $reservation) {
             foreach ($reservation->options as $option) {
@@ -326,6 +347,6 @@ class ReservationController extends Controller
             }
         }
 
-        return response()->json(['unavailableOptions' => $unavailableOptions]);
+        return $unavailableOptions;
     }
 }

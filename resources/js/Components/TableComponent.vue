@@ -5,8 +5,15 @@ import TableCheckboxCell from "@/Components/TableCheckboxCell.vue";
 import BaseLevel from "@/Components/BaseLevel.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import BaseButton from "@/Components/BaseButton.vue";
-import { mdiTrashCan, mdiTextBoxEdit, mdiCheckCircleOutline } from "@mdi/js";
+import {
+    mdiTrashCan,
+    mdiTextBoxEdit,
+    mdiCheckCircleOutline,
+    mdiAlertBoxOutline,
+    mdiAlert,
+} from "@mdi/js";
 import { useForm } from "@inertiajs/vue3";
+import IconRounded from "./IconRounded.vue";
 
 const props = defineProps({
     checkable: Boolean,
@@ -60,18 +67,22 @@ const checked = (isChecked, row) => {
         );
     }
 };
-
-const shouldDisplayNoteButton = (action, row) => {
-    return action === "note" && props.permissions.note && !row["isNoted"];
-};
-
-const shouldDisplayApproveButton = (action, row) => {
-    return (
-        action === "approve" &&
-        row["isNoted"] &&
-        props.permissions.approve &&
-        !row["isApproved"]
-    );
+const buttonToDisplay = (action, row) => {
+    switch (action) {
+        case "note":
+            return (
+                action === "note" && props.permissions.note && !row["isNoted"]
+            );
+        case "approve":
+            return (
+                action === "approve" &&
+                row["isNoted"] &&
+                props.permissions.approve &&
+                !row["isApproved"]
+            );
+        case "default":
+            break;
+    }
 };
 
 const getCellContent = (action, row) => {
@@ -138,14 +149,13 @@ function destroy() {
                 >
                     <template v-if="column.action">
                         <!-- Note Button Logic -->
-                        <BaseButton
+                        <!-- <BaseButton
                             v-if="shouldDisplayNoteButton(column.action, row)"
                             :href="route(`reservation.note`, row.id)"
                             color="info"
                             :icon="mdiCheckCircleOutline"
                             small
                         />
-                        <!-- Approve Button Logic -->
                         <BaseButton
                             v-if="
                                 shouldDisplayApproveButton(column.action, row)
@@ -154,8 +164,24 @@ function destroy() {
                             color="info"
                             :icon="mdiCheckCircleOutline"
                             small
+                        /> -->
+                        <IconRounded
+                            v-if="!row['isChecked'] && !row['isApproved']"
+                            color="warning"
+                            :icon="mdiAlert"
+                            small
+                            v-tooltip="
+                                `Conflict schedules for ${row['conflictData']}`
+                            "
                         />
-                        <!-- Pending or Noted/Approved Display Logic -->
+
+                        <BaseButton
+                            v-else-if="buttonToDisplay(column.action, row)"
+                            :href="route(`reservation.note`, row.id)"
+                            color="info"
+                            :icon="mdiCheckCircleOutline"
+                            small
+                        />
                         <span v-else>
                             {{ getCellContent(column.action, row) }}
                         </span>
