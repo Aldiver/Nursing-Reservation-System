@@ -7,6 +7,8 @@ import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
 import { mdiOfficeBuildingMarkerOutline } from "@mdi/js";
+import NotificationBar from "@/Components/NotificationBar.vue";
+
 const props = defineProps({
     venues: Array,
     columns: Array,
@@ -15,6 +17,7 @@ const props = defineProps({
 const controller_routes = {
     edit: "admin.venues.edit",
     delete: "admin.venues.destroy",
+    show: "admin.venues.show",
 };
 </script>
 
@@ -31,6 +34,13 @@ const controller_routes = {
                     <Link href="/admin/venues/create">Add</Link>
                 </PrimaryButton>
             </SectionTitleLineWithButton>
+            <NotificationBar
+                v-if="$page.props.flash.message"
+                color="success"
+                :icon="mdiAlertBoxOutline"
+            >
+                {{ $page.props.flash.message }}
+            </NotificationBar>
             <div class="py-12">
                 <CardBox class="mb-6" has-table>
                     <TableComponent

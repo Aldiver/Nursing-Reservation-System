@@ -11,7 +11,7 @@ class DepartmentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:list', ['only' => ['index', 'show']]);
+        $this->middleware('can:show', ['only' => ['index', 'show']]);
         $this->middleware('can:create', ['only' => ['create', 'store']]);
         $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
         $this->middleware('can:delete', ['only' => ['destroy']]);
@@ -36,6 +36,7 @@ class DepartmentController extends Controller
 
         // Get user permissions (if needed)
         $permissions = [
+            'show' => auth()->user()->can('show'),
             'edit' => auth()->user()->can('edit'),
             'delete' => auth()->user()->can('delete'),
         ];
@@ -73,9 +74,9 @@ class DepartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Department $department)
     {
-        //
+        return inertia('Admin/Department/Show', ['department' => $department]);
     }
 
     /**

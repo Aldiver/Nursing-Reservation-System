@@ -17,6 +17,7 @@ const props = defineProps({
 const controller_routes = {
     edit: "reservations.edit",
     delete: "reservations.destroy",
+    show: "reservations.show",
 };
 </script>
 
@@ -41,6 +42,7 @@ const controller_routes = {
             >
                 {{ $page.props.flash.message }}
             </NotificationBar>
+
             <div class="py-12">
                 <CardBox class="mb-6" has-table>
                     <TableComponent

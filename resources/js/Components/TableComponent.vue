@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
 import CardBoxModal from "@/Components/CardBoxModal.vue";
-import TableCheckboxCell from "@/Components/TableCheckboxCell.vue";
 import BaseLevel from "@/Components/BaseLevel.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import BaseButton from "@/Components/BaseButton.vue";
@@ -9,8 +8,8 @@ import {
     mdiTrashCan,
     mdiTextBoxEdit,
     mdiCheckCircleOutline,
-    mdiAlertBoxOutline,
     mdiAlert,
+    mdiEyeCircle,
 } from "@mdi/js";
 import { useForm } from "@inertiajs/vue3";
 import IconRounded from "./IconRounded.vue";
@@ -29,7 +28,6 @@ const props = defineProps({
     },
 });
 
-const isModalActive = ref(false);
 const isModalDangerActive = ref(false);
 const perPage = ref(5);
 const currentPage = ref(0);
@@ -148,25 +146,8 @@ function destroy() {
                     :data-label="column.label"
                 >
                     <template v-if="column.action">
-                        <!-- Note Button Logic -->
-                        <!-- <BaseButton
-                            v-if="shouldDisplayNoteButton(column.action, row)"
-                            :href="route(`reservation.note`, row.id)"
-                            color="info"
-                            :icon="mdiCheckCircleOutline"
-                            small
-                        />
-                        <BaseButton
-                            v-if="
-                                shouldDisplayApproveButton(column.action, row)
-                            "
-                            :href="route(`reservation.approve`, row.id)"
-                            color="info"
-                            :icon="mdiCheckCircleOutline"
-                            small
-                        /> -->
                         <IconRounded
-                            v-if="!row['isChecked'] && !row['isApproved']"
+                            v-if="row.conflict && !row.isApproved"
                             color="warning"
                             :icon="mdiAlert"
                             small
@@ -177,7 +158,9 @@ function destroy() {
 
                         <BaseButton
                             v-else-if="buttonToDisplay(column.action, row)"
-                            :href="route(`reservation.note`, row.id)"
+                            :href="
+                                route(`reservation.${column.action}`, row.id)
+                            "
                             color="info"
                             :icon="mdiCheckCircleOutline"
                             small
@@ -197,14 +180,18 @@ function destroy() {
                         </span>
                     </template>
                 </td>
-                <td
-                    v-if="permissions.edit || permissions.delete"
-                    class="before:hidden lg:w-1 whitespace-nowrap"
-                >
+                <td class="before:hidden lg:w-1 whitespace-nowrap">
                     <BaseButtons type="justify-start lg:justify-end" no-wrap>
                         <BaseButton
-                            v-if="permissions.edit"
+                            v-if="permissions.show"
                             color="info"
+                            :icon="mdiEyeCircle"
+                            :href="route(routes.show, row.id)"
+                            small
+                        />
+                        <BaseButton
+                            v-if="permissions.edit"
+                            color="success"
                             :icon="mdiTextBoxEdit"
                             :href="route(routes.edit, row.id)"
                             small

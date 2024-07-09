@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:list', ['only' => ['index', 'show']]);
+        $this->middleware('can:show', ['only' => ['index', 'show']]);
         $this->middleware('can:create', ['only' => ['create', 'store']]);
         // $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
         $this->middleware('can:delete', ['only' => ['destroy']]);
@@ -45,6 +45,7 @@ class UserController extends Controller
 
         // Get user permissions
         $permissions = [
+            'show' => auth()->user()->can('show'),
             'edit' => auth()->user()->can('edit'),
             'delete' => auth()->user()->can('delete'),
         ];
@@ -115,7 +116,12 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('message', __('User created successfully'));
         ;
     }
-
+    public function show(User $user)
+    {
+        $user->load('roles', 'department');
+        return inertia('Admin/User/Show', [
+            'user' => $user]);
+    }
     public function edit(User $user)
     {
         // Check if the user trying to delete is the super admin

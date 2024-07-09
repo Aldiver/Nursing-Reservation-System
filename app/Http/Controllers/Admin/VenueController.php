@@ -10,7 +10,7 @@ class VenueController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:list', ['only' => ['index', 'show']]);
+        $this->middleware('can:show', ['only' => ['index', 'show']]);
         $this->middleware('can:create', ['only' => ['create', 'store']]);
         $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
         $this->middleware('can:delete', ['only' => ['destroy']]);
@@ -39,6 +39,7 @@ class VenueController extends Controller
 
         // Get user permissions (if needed)
         $permissions = [
+            'show' => auth()->user()->can('show'),
             'edit' => auth()->user()->can('edit'),
             'delete' => auth()->user()->can('delete'),
         ];
@@ -68,18 +69,19 @@ class VenueController extends Controller
             'description' => 'required|string|max:255',
         ]);
 
-        Venue::create($request->all());
+        $venue = Venue::create($request->all());
 
-        return redirect()->route('admin.venues.index')->with('message', __('Venue created successfully'));
+        return redirect()->route('admin.venues.show', $venue)->with('message', __('Venue created successfully'));
         ;
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Venue $venue)
     {
-        //
+        $venue->load('options');
+        return inertia('Admin/Venue/Show', ['venue' => $venue]);
     }
 
     /**
@@ -87,6 +89,7 @@ class VenueController extends Controller
      */
     public function edit(Venue $venue)
     {
+        $venue->load('options');
         return inertia('Admin/Venue/Edit', ['venue' => $venue]);
     }
 
@@ -95,15 +98,36 @@ class VenueController extends Controller
      */
     public function update(Request $request, Venue $venue)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
+            'options' => 'nullable|array',
+            'options.*.name' => 'required|string|max:255',
+            'options.*.with_pax' => 'boolean',
+            'options.*.max_pax' => 'nullable|integer',
         ]);
+        $venue->update($validatedData);
 
-        $venue->update($request->all());
+        if ($request->has('options')) {
+            $options = collect($request->input('options'));
 
-        return redirect()->route('admin.venues.index')->with('message', __('Venue updated successfully'));
-        ;
+            $options->each(function ($option) use ($venue) {
+                $venue->options()->updateOrCreate(
+                    ['name' => $option['name']],
+                    [
+                        'with_pax' => $option['with_pax'],
+                        'max_pax' => $option['max_pax'],
+                    ]
+                );
+            });
+
+            // Remove options that are not in the request
+            $optionNames = $options->pluck('name')->toArray();
+            $venue->options()->whereNotIn('name', $optionNames)->delete();
+        }
+
+        // Redirect back to the venues index with a success message
+        return redirect()->route('admin.venues.show', $venue)->with('message', __('Venue updated successfully'));
     }
 
     /**

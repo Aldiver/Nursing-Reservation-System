@@ -18,6 +18,7 @@ const props = defineProps({
 const controller_routes = {
     edit: "admin.users.edit",
     delete: "admin.users.destroy",
+    show: "admin.users.show",
 };
 </script>
 <template>

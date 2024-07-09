@@ -14,7 +14,7 @@ import FormCheckRadioGroup from "@/Components/FormCheckRadioGroup.vue";
 import BaseDivider from "@/Components/BaseDivider.vue";
 import BaseButton from "@/Components/BaseButton.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
-import { mdiInvoiceTextClock } from "@mdi/js";
+import { mdiInvoiceTextClock, mdiAlertBoxOutline } from "@mdi/js";
 
 const props = defineProps({
     reservation: Object,
@@ -261,7 +261,7 @@ watchEffect(() => {
                 <CardBox
                     is-form
                     @submit.prevent="
-                        form.patch(route('reservations.store', reservation))
+                        form.patch(route('reservations.update', reservation))
                     "
                 >
                     <FormField

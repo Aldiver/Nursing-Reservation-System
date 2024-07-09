@@ -6,46 +6,46 @@ import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.
 import { Head, Link } from "@inertiajs/vue3";
 import { ref } from "vue";
 import CardBox from "@/Components/CardBox.vue";
-import { mdiOfficeBuildingMarkerOutline } from "@mdi/js";
+import { mdiCardAccountDetails } from "@mdi/js";
 import NotificationBar from "@/Components/NotificationBar.vue";
 import { formatDate, formatTime } from "@/helpers";
 import BaseDivider from "@/Components/BaseDivider.vue";
+import { computed } from "vue";
 
 const props = defineProps({
-    reservation: {
+    user: {
         type: Object,
         default: () => ({}),
     },
 });
 
-const reservation_data = ref({
-    id: props.reservation.id,
-    "Reserved by": props.reservation.user.name,
-    Schedule: `${formatDate(props.reservation.date)} ${formatTime(
-        props.reservation.start_time
-    )} - ${formatTime(props.reservation.end_time)}`,
-    Purpose: [
-        ...props.reservation.purpose.purpose,
-        props.reservation.purpose.others,
-    ].join(", "),
-    Remarks: props.reservation.remarks || "N/A",
-    Status: props.reservation.isApproved ? "Approved" : "Pending",
-    "Noted by": props.reservation.noter?.name ?? "Pending",
-    "Approved by": props.reservation.approver?.name ?? "Pending",
+const userRole = computed(() => {
+    return props.user.roles && props.user.roles.length > 0
+        ? props.user.roles[0].name
+        : "N/A";
+});
+
+const user_data = ref({
+    id: props.user.id,
+    Name: props.user.name,
+    "Contact Number": props.user.contact_number || "N/A",
+    "Email address": props.user.email,
+    Department: props.user.department?.name ?? "N/A",
+    "User Role": userRole,
 });
 </script>
 
 <template>
-    <Head title="Reservations" />
+    <Head title="Users" />
     <AuthenticatedLayout>
         <SectionMain>
             <SectionTitleLineWithButton
-                :icon="mdiOfficeBuildingMarkerOutline"
-                title="Reservation"
+                :icon="mdiCardAccountDetails"
+                title="User"
                 main
             >
                 <PrimaryButton class="ms-4">
-                    <Link href="/reservations">Back</Link>
+                    <Link href="/users">Back</Link>
                 </PrimaryButton>
             </SectionTitleLineWithButton>
             <NotificationBar
@@ -57,9 +57,7 @@ const reservation_data = ref({
             </NotificationBar>
             <div class="py-12">
                 <CardBox class="mb-6" has-table>
-                    <label class="block font-bold p-4">
-                        Reservation Details</label
-                    >
+                    <label class="block font-bold p-4"> User Details</label>
                     <table>
                         <thead>
                             <tr>
@@ -68,7 +66,7 @@ const reservation_data = ref({
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(value, index) in reservation_data">
+                            <tr v-for="(value, index) in user_data">
                                 <td>{{ index }}</td>
                                 <td>{{ value }}</td>
                             </tr>
@@ -77,7 +75,7 @@ const reservation_data = ref({
                     <BaseDivider />
                     <template #footer>
                         <span class="dark:text-slate-700 text-slate-400">
-                            Created at {{ formatDate(reservation.created_at) }}
+                            Created at {{ formatDate(user.created_at) }}
                         </span>
                     </template>
                 </CardBox>
