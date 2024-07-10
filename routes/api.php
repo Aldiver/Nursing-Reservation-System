@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReservationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,3 +21,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/getUnavailableOptions', [ReservationController::class, 'getUnavailableOptions']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications-unread', [NotificationController::class, 'indexUnreadNotifications']);
+    Route::patch('/mark-notification/{id}', [NotificationController::class, 'markNotification']);
+    Route::patch('/mark-notifications', [NotificationController::class, 'markAllNotifications']);
+    Route::delete('/notification/{id}', [NotificationController::class, 'destroy']);
+});

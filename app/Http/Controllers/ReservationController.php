@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ReservationEvent;
 use App\Models\Reservation;
 use App\Models\Venue;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class ReservationController extends Controller
@@ -234,6 +234,15 @@ class ReservationController extends Controller
 
         // Attach the options with the reservation
         $reservation->options()->attach($optionsWithPax);
+
+        // Trigger the ReservationEvent for each user
+        $auth_user = auth()->user()->name;
+
+        $noterUsers = User::role('admin')->get();
+
+        foreach ($noterUsers as $user) {
+            event(new ReservationEvent($user, "Reservation Request", "$auth_user Created a reservation"));
+        }
 
         return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} created successfully"));
     }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useStyleStore } from "@/stores/style.js";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Dropdown from "@/Components/Dropdown.vue";
@@ -15,21 +15,36 @@ import {
     mdiInvoiceTextClock,
     mdiClipboardList,
     mdiOfficeBuildingMarkerOutline,
+    mdiBellOutline,
 } from "@mdi/js";
+import BaseIconWithBadge from "@/Components/BaseIconWithBadge.vue";
+import CardBoxNotifications from "@/Components/CardBoxNotifications.vue";
 
 const isSidebarOpen = ref(false);
 const isDarkMode = ref(false);
 
 const styleStore = useStyleStore();
+const notifications = ref([]);
 
-// const toggleDarkMode = () => {
-//     isDarkMode.value = !isDarkMode.value;
-//     if (isDarkMode.value) {
-//         document.documentElement.classList.add("dark");
-//     } else {
-//         document.documentElement.classList.remove("dark");
-//     }
-// };
+const fetchNotifications = async () => {
+    try {
+        const response = await axios.get("/api/notifications-unread", {
+            withCredentials: true,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching unavailable options:", error);
+        return [];
+    }
+};
+
+onMounted(() => {
+    fetchNotifications().then((data) => {
+        console.log("Notifications: ", data);
+        notifications.value = data;
+        // console.log("Notifications Length: ", notifications.value.length);
+    });
+});
 
 const toggleDarkMode = () => {
     styleStore.setDarkMode();
@@ -94,7 +109,7 @@ const navItems = [
         :class="{
             dark: styleStore.darkMode,
         }"
-        class="min-h-screen overflow-hidden"
+        class="flex flex-row min-h-screen overflow-hidden"
     >
         <div
             class="flex min-h-screen w-screen transition-position lg:w-auto bg-gray-200 dark:bg-slate-800 dark:text-slate-100"
@@ -120,24 +135,6 @@ const navItems = [
                                 />
                             </Link>
                         </div>
-                        <!-- <button
-                            @click="isSidebarOpen = false"
-                            class="lg:inline-block md:hidden"
-                        >
-                            <svg
-                                class="w-6 h-6 text-gray-500 dark:text-gray-300"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        </button> -->
                     </div>
 
                     <div class="flex-none">
@@ -161,109 +158,174 @@ const navItems = [
                     </div>
                 </div>
             </aside>
-
-            <!-- Main Content -->
-            <div class="flex-1 flex flex-col">
-                <!-- Top Navigation -->
-                <nav
-                    class="top-0 left-0 right-0 fixed bg-gray-200 h-14 w-screen transition-position xl:pl-60 lg:w-auto dark:bg-slate-800"
+        </div>
+        <!-- Main Content -->
+        <div
+            class="flex-1 flex flex-col bg-gray-200 dark:bg-slate-800 dark:text-slate-100"
+        >
+            <!-- Top Navigation -->
+            <nav
+                class="top-0 z-30 left-0 right-0 fixed bg-gray-200 h-14 w-full transition-position xl:pl-60 lg:w-auto dark:bg-slate-800"
+            >
+                <div
+                    class="flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8"
                 >
-                    <div
-                        class="flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8"
-                    >
-                        <div class="flex items-center">
-                            <!-- Hamburger for smaller screens -->
-                            <div class="flex lg:hidden ml-4">
-                                <button
-                                    @click="isSidebarOpen = true"
-                                    class="text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700"
+                    <div class="flex items-center">
+                        <!-- Hamburger for smaller screens -->
+                        <div class="flex lg:hidden ml-4">
+                            <button
+                                @click="isSidebarOpen = true"
+                                class="text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700"
+                            >
+                                <svg
+                                    class="w-6 h-6"
+                                    stroke="currentColor"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                 >
-                                    <svg
-                                        class="w-6 h-6"
-                                        stroke="currentColor"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M4 6h16M4 12h16M4 18h16"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16"
+                                    />
+                                </svg>
+                            </button>
                         </div>
+                    </div>
 
-                        <!-- Right-aligned buttons -->
-                        <div class="flex items-center space-x-4">
-                            <!-- Toggle Dark Mode Button -->
-                            <button
-                                @click="toggleDarkMode"
-                                class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 focus:outline-none focus:text-gray-700 dark:focus:text-gray-100"
-                            >
-                                <span v-if="!isDarkMode">
-                                    <SunIcon class="w-6 h-6" />
-                                </span>
-                                <span v-else>
-                                    <MoonIcon class="w-6 h-6" />
-                                </span>
-                            </button>
-                            <!-- Notification Bell -->
-                            <button
-                                class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 focus:outline-none focus:text-gray-700 dark:focus:text-gray-100"
-                            >
-                                <BellIcon class="w-6 h-6" />
-                            </button>
-                            <!-- Profile Dropdown -->
-                            <div class="relative">
-                                <Dropdown width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
+                    <!-- Right-aligned buttons -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Toggle Dark Mode Button -->
+                        <button
+                            @click="toggleDarkMode"
+                            class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 focus:outline-none focus:text-gray-700 dark:focus:text-gray-100"
+                        >
+                            <span v-if="!isDarkMode">
+                                <SunIcon class="w-6 h-6" />
+                            </span>
+                            <span v-else>
+                                <MoonIcon class="w-6 h-6" />
+                            </span>
+                        </button>
+                        <!-- Notification Bell -->
+                        <div class="relative">
+                            <CardBoxNotifications>
+                                <template #trigger>
+                                    <BaseIconWithBadge
+                                        :size="24"
+                                        :path="mdiBellOutline"
+                                        :notifications="notifications"
+                                    />
+                                </template>
+                                <template #content>
+                                    <div
+                                        id="toast-interactive"
+                                        class="w-full right-4 top-10 z-50 max-w-xs p-4 text-gray-500 bg-white shadow dark:bg-gray-800 dark:text-gray-400"
+                                        role="alert"
+                                    >
+                                        <div
+                                            v-for="notification in notifications"
+                                            :key="notification.id"
+                                            class="flex py-2 border-b-2 dark:border-gray-700"
+                                        >
+                                            <div
+                                                class="ms-3 text-sm font-normal"
+                                            >
+                                                <span
+                                                    class="mb-1 text-sm font-semibold text-gray-900 dark:text-white"
+                                                    >{{
+                                                        notification.data.title
+                                                    }}</span
+                                                >
+                                                <div
+                                                    class="mb-2 text-sm font-normal"
+                                                >
+                                                    {{ notification.data.body }}
+                                                </div>
+                                            </div>
                                             <button
                                                 type="button"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:text-gray-100 focus:outline-none transition ease-in-out duration-150"
+                                                class="ms-auto -mx-1.5 -my-1.5 bg-white items-center justify-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                                                data-dismiss-target="#toast-interactive"
+                                                aria-label="Close"
                                             >
-                                                {{ $page.props.auth.user.name }}
+                                                <span class="sr-only"
+                                                    >Close</span
+                                                >
                                                 <svg
-                                                    class="ml-2 -mr-0.5 h-4 w-4"
+                                                    class="w-3 h-3"
+                                                    aria-hidden="true"
                                                     xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
+                                                    fill="none"
+                                                    viewBox="0 0 14 14"
                                                 >
                                                     <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
+                                                        stroke="currentColor"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                                                     />
                                                 </svg>
                                             </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-6">
+                                        <span class="text-slate-500">
+                                            See more section
                                         </span>
-                                    </template>
-                                    <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                            >Profile</DropdownLink
+                                    </div>
+                                </template>
+                            </CardBoxNotifications>
+                        </div>
+
+                        <!-- Profile Dropdown -->
+                        <div class="relative">
+                            <Dropdown width="48">
+                                <template #trigger>
+                                    <span class="inline-flex rounded-md">
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:text-gray-100 focus:outline-none transition ease-in-out duration-150"
                                         >
-                                        <DropdownLink
-                                            :href="route('logout')"
-                                            method="post"
-                                            as="button"
-                                            >Log Out</DropdownLink
-                                        >
-                                    </template>
-                                </Dropdown>
-                            </div>
+                                            {{ $page.props.auth.user.name }}
+                                            <svg
+                                                class="ml-2 -mr-0.5 h-4 w-4"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path
+                                                    fill-rule="evenodd"
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd"
+                                                />
+                                            </svg>
+                                        </button>
+                                    </span>
+                                </template>
+                                <template #content>
+                                    <DropdownLink :href="route('profile.edit')"
+                                        >Profile</DropdownLink
+                                    >
+                                    <DropdownLink
+                                        :href="route('logout')"
+                                        method="post"
+                                        as="button"
+                                        >Log Out</DropdownLink
+                                    >
+                                </template>
+                            </Dropdown>
                         </div>
                     </div>
-                </nav>
-                <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto p-6">
-                    <slot />
-                </main>
-            </div>
+                </div>
+            </nav>
+            <!-- Page Content -->
+            <main class="w-full py-6 overflow-y-auto">
+                <slot />
+            </main>
         </div>
-        <!-- Sidebar -->
     </div>
 </template>
 
