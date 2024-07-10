@@ -167,7 +167,7 @@ const remove_options = (opt) => {
                 <CardBox
                     is-form
                     @submit.prevent="
-                        form.patch(route('admin.venues.update', venue))
+                        form.put(route('admin.venues.update', venue))
                     "
                 >
                     <FormField

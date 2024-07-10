@@ -58,7 +58,7 @@ const form = useForm({
                 <CardBox
                     is-form
                     @submit.prevent="
-                        form.patch(route('admin.users.update', user))
+                        form.put(route('admin.users.update', user))
                     "
                 >
                     <FormField

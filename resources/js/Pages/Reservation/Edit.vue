@@ -52,8 +52,13 @@ const form = useForm({
         parseInt(key)
     ),
     otherPurpose: props.reservation.purpose.others,
-    options: props.reservation.options.map((option) => option.id),
-    pax: {},
+    options: [],
+    pax: Object.fromEntries(
+        props.reservation.options.map((option) => [
+            String(option.id),
+            option.pivot.pax,
+        ])
+    ),
 });
 
 onMounted(() => {
@@ -66,12 +71,17 @@ onMounted(() => {
         form.purposeType = extractText(string1);
         form.materials = extractText(string2);
     }
+    form.options = props.reservation.options.map((option) => {
+        const { pivot, ...rest } = option;
+        return rest;
+    });
     // fetchUnavailableOptions;
 });
 
 // Check if an option is selected
 function isOptionSelected(optionId) {
-    return form.options.includes(optionId);
+    // console.log("Checking if option is selected:", optionId, form.options); // Debug log
+    return form.options.some((option) => option.id === optionId);
 }
 
 // Handle option change to ensure pax is properly managed
@@ -83,7 +93,7 @@ function handleOptionChange(option, event) {
 
 // Watch form.options to ensure we update pax correctly
 watch(
-    () => form.options,
+    () => form.pax,
     (newOptions) => {
         for (const option of Object.keys(form.pax)) {
             if (!newOptions.includes(parseInt(option))) {
@@ -98,11 +108,6 @@ const purposeOptions = [
     "Meeting",
     "Demonstration/Return Demonstration",
 ];
-
-const submit = () => {
-    console.log("Submitting form:", form);
-    form.post(route("reservations.store"));
-};
 
 const isWeekday = (date) => {
     const day = new Date(date).getDay();
@@ -210,6 +215,7 @@ const fetchUnavailableOptions = async () => {
                 date: form.date,
                 start_time: form.start_time,
                 end_time: form.end_time,
+                currentReservationId: props.reservation.id,
             },
         });
         return response.data.unavailableOptions;
@@ -261,7 +267,7 @@ watchEffect(() => {
                 <CardBox
                     is-form
                     @submit.prevent="
-                        form.patch(route('reservations.update', reservation))
+                        form.put(route('reservations.update', reservation))
                     "
                 >
                     <FormField
@@ -409,7 +415,7 @@ watchEffect(() => {
                                                 '_' +
                                                 oIndex
                                             "
-                                            :value="option.id"
+                                            :value="option"
                                             v-model="form.options"
                                             class="mr-2"
                                             :disabled="
@@ -446,10 +452,17 @@ watchEffect(() => {
                                                 v-if="
                                                     isOptionSelected(option.id)
                                                 "
+                                                :max="option.max_pax"
                                                 v-model="form.pax[option.id]"
                                                 class="mt-2 ml-4 p-2"
                                                 placeholder="Enter number of people"
                                             />
+                                            <span
+                                                class="ml-6 text-xs text-gray-500 dark:text-slate-400 mt-1"
+                                            >
+                                                Maximum pax is
+                                                {{ option.max_pax }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -461,7 +474,7 @@ watchEffect(() => {
                         <BaseButtons>
                             <BaseButton
                                 type="submit"
-                                color="info"
+                                color="whiteDark"
                                 label="Submit"
                                 :class="{ 'opacity-25': form.processing }"
                                 :disabled="form.processing"

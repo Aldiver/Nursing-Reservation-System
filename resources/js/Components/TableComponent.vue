@@ -170,13 +170,21 @@ function destroy() {
                         </span>
                     </template>
                     <template v-else>
-                        <span v-if="column.field != 'remarks'">
-                            {{ row[column.field] }}
-                        </span>
-                        <span v-else>
+                        <div v-if="Array.isArray(row[column.field])">
+                            <span
+                                v-for="(opt, idx) in row[column.field]"
+                                :key="idx"
+                            >
+                                {{ opt }} <br />
+                            </span>
+                        </div>
+                        <span v-else-if="column.field == 'remarks'">
                             <pre class="font-figtree">{{
                                 row[column.field]
                             }}</pre>
+                        </span>
+                        <span v-else>
+                            {{ row[column.field] }}
                         </span>
                     </template>
                 </td>

@@ -37,7 +37,7 @@ class VenueSeeder extends Seeder
                 'name' => 'Nursing Skills Laboratory 2',
                 'description' => 'Description for Nursing Skills Laboratory 2',
                 'options' => [
-                    ['name' => 'Ward with 9 bed'],
+                    ['name' => 'Ward with 9 beds'],
                 ],
             ],
         ];

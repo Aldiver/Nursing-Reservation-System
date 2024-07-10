@@ -44,7 +44,7 @@ const controller_routes = {
             </NotificationBar>
 
             <div class="py-12">
-                <CardBox class="mb-6" has-table>
+                <CardBox class="mb-6 w-full" has-table>
                     <TableComponent
                         :checkable="true"
                         :columns="columns"

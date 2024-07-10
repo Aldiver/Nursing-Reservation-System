@@ -52,6 +52,10 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    max: {
+        type: Number,
+        default: 0,
+    },
 });
 
 const emit = defineEmits(["update:modelValue", "setRef"]);
@@ -182,6 +186,20 @@ if (props.ctrlKFocus) {
             :required="required"
             type="date"
             :class="inputElClass"
+        />
+        <input
+            v-else-if="computedType === 'number'"
+            :id="id"
+            v-model="computedValue"
+            :max="max"
+            :name="name"
+            :inputmode="inputmode"
+            :autocomplete="autocomplete"
+            :required="required"
+            :placeholder="placeholder"
+            type="number"
+            :class="inputElClass"
+            :disabled="disabled"
         />
         <input
             v-else

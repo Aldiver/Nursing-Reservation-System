@@ -102,11 +102,9 @@ const navItems = [
             <aside
                 id="aside"
                 :class="{ block: isSidebarOpen, hidden: !isSidebarOpen }"
-                class="fixed lg:py-2 lg:pl-2 inset-y-0 left-0 z-50 w-64 shadow-lg lg:block lg:relative"
+                class="flex-none fixed lg:py-2 lg:pl-2 inset-y-0 left-0 z-50 w-64 shadow-lg lg:block lg:relative"
             >
-                <div
-                    class="aside lg:rounded-2xl flex flex-1 flex-col h-full bg-gray-900"
-                >
+                <div class="aside lg:rounded-2xl flex-none h-full bg-gray-900">
                     <div
                         class="flex flex-row h-28 items-center justify-between p-2 border-b-2 border-gray-800"
                     >
@@ -142,8 +140,8 @@ const navItems = [
                         </button> -->
                     </div>
 
-                    <div class="flex-1 overflow-y-auto">
-                        <nav class="mt-4 space-y-1 flex flex-col flex-1 px-2">
+                    <div class="flex-none">
+                        <nav class="mt-4 space-y-1 flex-none px-2">
                             <div v-for="item in navItems" :key="item.label">
                                 <NavItem
                                     v-if="
@@ -269,10 +267,10 @@ const navItems = [
     </div>
 </template>
 
-<style>
+<!-- <style>
 @media (min-width: 1024px) {
     aside {
         display: block !important;
     }
 }
-</style>
+</style> -->

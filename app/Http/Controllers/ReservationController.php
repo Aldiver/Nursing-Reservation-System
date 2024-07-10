@@ -54,7 +54,7 @@ class ReservationController extends Controller
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
 
-            $options = $reservation->options->pluck('name')->toArray();
+            $options = $reservation->options->sortBy('id')->pluck('name')->toArray();
 
             // Format purpose
             $purposeData = is_array($reservation->purpose) ? $reservation->purpose : json_decode($reservation->purpose, true);
@@ -71,6 +71,7 @@ class ReservationController extends Controller
 
             // Check for overlapping reservations
             $allOptions = $reservation->options->pluck('name', 'id')->toArray();
+            // dd($options);
             $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
 
             $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
@@ -86,8 +87,9 @@ class ReservationController extends Controller
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
                 'purpose' => $combinedPurpose,
-                'remarks' => $reservation->remarks,
-                'options' => implode(', ', $options),
+                // 'remarks' => $reservation->remarks,
+                'options' => $options,
+                // 'options' => implode(', ', $options),
                 'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
                 'noted_by' => optional($reservation->noter)->name,
                 'approved_by' => optional($reservation->approver)->name,
@@ -103,7 +105,7 @@ class ReservationController extends Controller
             // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Reserved By', 'field' => 'reserved_by'],
             ['label' => 'Purpose', 'field' => 'purpose'],
-            ['label' => 'Remarks', 'field' => 'remarks'],
+            // ['label' => 'Remarks', 'field' => 'remarks'],
             ['label' => 'Options', 'field' => 'options'],
             ['label' => 'Reservation Date', 'field' => 'reservation_date'],
             ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
@@ -147,7 +149,7 @@ class ReservationController extends Controller
             'purpose.*' => 'integer',
             'otherPurpose' => 'nullable|string',
             'options' => 'required|array',
-            'options.*' => 'integer|exists:options,id',
+            // 'options.*' => 'integer|exists:options,id',
             'pax' => 'nullable|array',
             'pax.*' => 'nullable|integer',
         ];
@@ -223,11 +225,17 @@ class ReservationController extends Controller
         ]);
 
         // Attach options with pax to the reservation
-        foreach ($validatedData['options'] as $optionId) {
-            $reservation->options()->attach($optionId, ['pax' => $validatedData['pax'][$optionId] ?? null]);
-        }
+        $optionsWithPax = collect($validatedData['options'])->mapWithKeys(function ($option) use ($validatedData) {
+            return [
+                $option['id'] => ['pax' => $validatedData['pax'][$option['id']] ?? null]
+            ];
 
-        return redirect()->route('reservations.index');
+        })->toArray();
+
+        // Attach the options with the reservation
+        $reservation->options()->attach($optionsWithPax);
+
+        return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} created successfully"));
     }
 
     public function show(Reservation $reservation)
@@ -248,10 +256,10 @@ class ReservationController extends Controller
 
         // Load venues with their options to populate the edit form
         $venues = Venue::with('options')->get();
-        $reservation->load('options');
+        $reservation->with('options');
 
-        $allOptions = $reservation->options->pluck('name', 'id')->toArray();
-        $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time);
+        $allOptions = $reservation->options->pluck('name', 'id', 'pax')->toArray();
+        $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
         $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
             return in_array($key, $unavailableOptions);
         }, ARRAY_FILTER_USE_KEY);
@@ -269,30 +277,88 @@ class ReservationController extends Controller
 
     public function update(Request $request, Reservation $reservation)
     {
-        $request->validate([
-            'venue_id' => 'required',
+        $rules = [
             'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'number_of_participants' => 'required|integer',
-            'noted_by' => 'required|exists:users,id',
-            'approved_by' => 'required|exists:users,id',
-        ]);
+            'start_time' => 'required|date_format:h:i A',
+            'end_time' => 'required|date_format:h:i A|after:start_time',
+            'purpose' => 'nullable|array',
+            'purpose.*' => 'integer',
+            'otherPurpose' => 'nullable|string',
+            'options' => 'required|array',
+            // 'options.*' => 'integer|exists:options,id',
+            'pax' => 'nullable|array',
+            'pax.*' => 'nullable|integer',
+        ];
 
-        $existingReservation = Reservation::where('venue_id', $request->venue_id)
-            ->where('date', $request->date)
-            ->where('id', '!=', $reservation->id)
-            ->where(function ($query) use ($request) {
-                $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                      ->orWhereBetween('end_time', [$request->start_time, $request->end_time]);
-            })->first();
 
-        if ($existingReservation) {
-            return redirect()->back()->withErrors(['time' => 'The selected time slot is already booked.']);
+        // Add conditional validation rules for purposeType and materials if purpose contains 2
+        if (in_array(2, $request->input('purpose', []))) {
+            $rules['purposeType'] = 'required|string';
+            $rules['materials'] = 'required|string';
+        } else {
+            $rules['purposeType'] = 'nullable|string';
+            $rules['materials'] = 'nullable|string';
         }
 
-        $reservation->update($request->all());
-        return redirect()->route('reservations.index');
+        // Validate the incoming request
+        $validatedData = $request->validate($rules);
+
+        // Convert purpose indices to corresponding strings
+        $purposeMapping = [
+            0 => 'Class',
+            1 => 'Meeting',
+            2 => 'Demonstration/Return Demonstration',
+        ];
+        $purposes = array_map(function ($purpose) use ($purposeMapping) {
+            return $purposeMapping[$purpose] ?? $purpose;
+        }, $validatedData['purpose']);
+
+        $otherPurpose = $validatedData['otherPurpose'] ?? null;
+
+        $toStore = [
+            'purpose' => $purposes,
+            'others' => $otherPurpose
+        ];
+        // Concatenate purposeType and materials for remarks
+        $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
+            ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' .$validatedData['materials']
+            : '';
+
+        // Convert times to 24-hour format
+        $start_time = Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i');
+        $end_time = Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i');
+
+        // Validate date constraints for reservation times
+        $date = new \DateTime($request->date);
+        if ($date->format('N') >= 6 && !($date->format('N') == 6 && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
+            return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM, and Saturdays from 8 AM to 12 PM.']);
+        }
+
+        // Prepare the array of option IDs with their corresponding pax values
+        $optionsWithPax = collect($validatedData['options'])->mapWithKeys(function ($option) use ($validatedData) {
+            // Check if the option has with_pax set to true
+            if ($option['with_pax']) {
+                return [
+                    $option['id'] => ['pax' => $validatedData['pax'][$option['id']] ?? null]
+                ];
+            } else {
+                return [
+                    $option['id'] => []
+                ];
+            }
+        })->toArray();
+
+        // Sync the options with the reservation
+        $reservation->options()->sync($optionsWithPax);
+
+        $reservation->update([
+            'date' => $date,
+            'start_time' => $start_time,
+            'end_time' => $end_time,
+            'purpose' => $toStore,
+            'remarks' => $remarks,
+        ]);
+        return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} updated successfully"));
     }
 
     public function destroy(Reservation $reservation)
@@ -323,8 +389,9 @@ class ReservationController extends Controller
         $date = $request->input('date');
         $startTime = $request->input('start_time');
         $endTime = $request->input('end_time');
+        $currentReservationId = $request->input('id');
 
-        $unavailableOptions = $this->getUnavailableOptionsForTimeRange($date, $startTime, $endTime);
+        $unavailableOptions = $this->getUnavailableOptionsForTimeRange($date, $startTime, $endTime, $currentReservationId);
 
         return response()->json(['unavailableOptions' => $unavailableOptions]);
     }

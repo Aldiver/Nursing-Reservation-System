@@ -65,14 +65,12 @@ const venue_data = ref({
                             <tr>
                                 <td>Options</td>
                                 <td>
-                                    <li
-                                        type="bullet"
-                                        class="mr-5"
+                                    <span
                                         v-for="(opt, idx) in venue.options"
                                         :key="idx"
                                     >
                                         {{ opt.name }} <br />
-                                    </li>
+                                    </span>
                                 </td>
                             </tr>
                         </tbody>

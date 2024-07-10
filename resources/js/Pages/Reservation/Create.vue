@@ -45,18 +45,6 @@ function handleOptionChange(option, event) {
     }
 }
 
-// Watch form.options to ensure we update pax correctly
-watch(
-    () => form.options,
-    (newOptions) => {
-        for (const option of Object.keys(form.pax)) {
-            if (!newOptions.includes(parseInt(option))) {
-                delete form.pax[option];
-            }
-        }
-    }
-);
-
 const purposeOptions = [
     "Class",
     "Meeting",
@@ -360,7 +348,7 @@ watchEffect(() => {
                                                 '_' +
                                                 oIndex
                                             "
-                                            :value="option.id"
+                                            :value="option"
                                             v-model="form.options"
                                             class="mr-2"
                                             :disabled="
@@ -394,9 +382,8 @@ watchEffect(() => {
                                         <div v-if="option.with_pax">
                                             <FormControl
                                                 type="number"
-                                                v-if="
-                                                    isOptionSelected(option.id)
-                                                "
+                                                :max="option.max_pax"
+                                                v-if="isOptionSelected(option)"
                                                 v-model="form.pax[option.id]"
                                                 class="mt-2 ml-4 p-2"
                                                 placeholder="Enter number of people"
@@ -407,11 +394,12 @@ watchEffect(() => {
                             </div>
                         </FormField>
                     </div>
+                    <BaseDivider />
                     <template #footer>
                         <BaseButtons>
                             <BaseButton
                                 type="submit"
-                                color="info"
+                                color="whiteDark"
                                 label="Submit"
                                 :class="{ 'opacity-25': form.processing }"
                                 :disabled="form.processing"

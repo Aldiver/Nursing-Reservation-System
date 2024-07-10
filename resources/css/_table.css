@@ -1,6 +1,6 @@
 @layer base {
     table {
-        @apply w-full text-gray-800 dark:text-gray-200;
+        @apply w-full overflow-x-auto text-gray-800 dark:text-gray-200;
     }
 
     thead {
