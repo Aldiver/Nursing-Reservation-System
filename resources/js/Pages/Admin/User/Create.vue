@@ -8,7 +8,6 @@ import CardBox from "@/Components/CardBox.vue";
 import SectionTitleLineWithButton from "@/Components/SectionTitleLineWithButton.vue";
 import FormField from "@/Components/FormField.vue";
 import FormControl from "@/Components/FormControl.vue";
-import FormCheckRadioGroup from "@/Components/FormCheckRadioGroup.vue";
 import BaseDivider from "@/Components/BaseDivider.vue";
 import BaseButton from "@/Components/BaseButton.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
@@ -17,10 +16,6 @@ import { mdiCardAccountDetails } from "@mdi/js";
 
 const props = defineProps({
     roles: {
-        type: Object,
-        default: () => ({}),
-    },
-    permissions: {
         type: Object,
         default: () => ({}),
     },
@@ -37,15 +32,8 @@ const form = useForm({
     password: "",
     password_confirmation: "",
     role: "",
-    permissions: [],
     department: "",
 });
-
-// const submit = () => {
-//     form.post(route("admin.users.store"), {
-//         onFinish: () => form.reset("password", "password_confirmation"),
-//     });
-// };
 </script>
 
 <template>
@@ -181,13 +169,7 @@ const form = useForm({
                             :options="props.roles"
                         />
                     </FormField>
-                    <FormField label="Permissions" wrap-body>
-                        <FormCheckRadioGroup
-                            v-model="form.permissions"
-                            name="roles"
-                            :options="props.permissions"
-                        />
-                    </FormField>
+                    <BaseDivider />
                     <template #footer>
                         <BaseButtons>
                             <BaseButton

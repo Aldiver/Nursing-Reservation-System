@@ -260,12 +260,22 @@ watchEffect(() => {
                             </FormControl></FormField
                         >
                     </div>
-                    <FormField label="Purpose" wrap-body>
+                    <FormField
+                        label="Purpose"
+                        :class="{ 'text-red-400': form.errors.purpose }"
+                        wrap-body
+                    >
                         <FormCheckRadioGroup
                             v-model="form.purpose"
                             name="purpose"
                             :options="purposeOptions"
                         />
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.purpose"
+                        >
+                            {{ form.errors.purpose }}
+                        </div>
                     </FormField>
                     <FormField
                         label="Others"
@@ -326,7 +336,18 @@ watchEffect(() => {
                         </FormControl>
                     </FormField>
                     <div class="mt-4">
-                        <h2 class="text-lg font-semibold mb-2">Venue</h2>
+                        <h2
+                            class="text-lg font-semibold mb-2"
+                            :class="{ 'text-red-400': form.errors.options }"
+                        >
+                            Venue
+                        </h2>
+                        <div
+                            class="text-red-400 text-sm flex-1"
+                            v-if="form.errors.options"
+                        >
+                            {{ form.errors.options }}
+                        </div>
                         <FormField
                             v-for="(venue, index) in props.venues"
                             :key="index"
