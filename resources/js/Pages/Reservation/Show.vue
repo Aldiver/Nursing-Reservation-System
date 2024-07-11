@@ -8,7 +8,7 @@ import { ref } from "vue";
 import CardBox from "@/Components/CardBox.vue";
 import { mdiOfficeBuildingMarkerOutline } from "@mdi/js";
 import NotificationBar from "@/Components/NotificationBar.vue";
-import { formatDate, formatTime } from "@/helpers";
+import { formatDate, formatTime } from "@/scripts/helpers";
 import BaseDivider from "@/Components/BaseDivider.vue";
 
 const props = defineProps({

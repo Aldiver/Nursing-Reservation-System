@@ -20,14 +20,61 @@ class ReservationEvent
      * Create a new event instance.
      */
     public $user;
+    public $owner;
     public $title;
     public $message;
+    public $reservation_id;
     // public $
-    public function __construct($user, $title = "", $message = "")
+
+    public function __construct($user, $owner, $reservation_id, $eventType)
     {
         $this->user = $user;
-        $this->title = $title;
-        $this->message = $message;
+        $this->owner = $owner;
+        $this->reservation_id = $reservation_id;
+        $this->setEventDetails($eventType);
+    }
+
+    /**
+     * Set the title and message based on the event type.
+     *
+     * @param string $eventType
+     * @return void
+     */
+    private function setEventDetails(string $eventType)
+    {
+        switch ($eventType) {
+            case 'created':
+                $this->title = "Reservation Created: ID[$this->reservation_id]";
+                $this->message = "$this->owner created a new reservation. Please note this reservation for further action.";
+                break;
+            case 'noted':
+                $this->title = "Reservation Noted: ID[$this->reservation_id]";
+                $this->message = "The reservation has been noted and is recommended for your approval.";
+                break;
+            case 'notify_noted':
+                $this->title = "Reservation Noted: ID[$this->reservation_id]";
+                $this->message = "The reservation has been noted and is awaiting approval.";
+                break;
+            case 'updated':
+                $this->title = "Reservation Updated: ID[$this->reservation_id]";
+                $this->message = "Your reservation has been revised.";
+                break;
+            case 'approved':
+                $this->title = "Reservation Approved: ID[$this->reservation_id]";
+                $this->message = "Your reservation has been approved.";
+                break;
+            case 'conflict':
+                $this->title = "Reservation Conflict Detected: ID[$this->reservation_id]";
+                $this->message = "A conflict has been detected with your reservation. Please review the details.";
+                break;
+            case 'deleted':
+                $this->title = "Reservation Deleted: ID[$this->reservation_id]";
+                $this->message = "Your reservation has been deleted. Contact administrator or create a new one.";
+                break;
+            default:
+                $this->title = "";
+                $this->message = "";
+        }
     }
 
     /**

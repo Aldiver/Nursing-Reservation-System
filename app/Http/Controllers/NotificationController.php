@@ -11,7 +11,6 @@ class NotificationController extends Controller
 
         // App::setLocale('en');
 
-
         $notifications = auth()->user()->notifications()->get();
         return response($notifications);
     }
@@ -24,10 +23,14 @@ class NotificationController extends Controller
     }
 
     #mark notification as read
-    public function markNotification(Request $request, $id)
+    public function markNotification(Request $request, string $id)
     {
         auth()->user()->unreadNotifications->where('id', $id)->markAsRead();
-        return response();
+        return response()->json([
+            'message' => 'Notification marked as read.',
+            'notification_id' => $id
+        ], 200);
+
     }
 
     #mark all notifications as read

@@ -21,6 +21,6 @@ class NotifyUserReservation
      */
     public function handle(object $event): void
     {
-        $event->user->notify(new ReservationNotification($event->user, $event->title, $event->message));
+        $event->user->notify(new ReservationNotification($event->user, $event->owner, $event->reservation_id, $event->title, $event->message));
     }
 }

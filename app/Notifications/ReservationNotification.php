@@ -11,15 +11,19 @@ class ReservationNotification extends Notification
 {
     use Queueable;
     private $user;
+    private $owner;
     private $notif_title;
     private $notif_message;
+    private $reservation_id;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($user, $notif_title = "Reservation Notification", $notif_message = "Notification Message")
+    public function __construct($user, $owner, $reservation_id, $notif_title = "Reservation Notification", $notif_message = "Notification Message")
     {
         $this->user = $user;
+        $this->owner = $owner;
+        $this->reservation_id = $reservation_id;
         $this->notif_title = $notif_title;
         $this->notif_message = $notif_message;
     }
@@ -55,6 +59,8 @@ class ReservationNotification extends Notification
         return [
             'title' => $this->notif_title,
             'body'  => $this->notif_message,
+            'reservation' => $this->reservation_id,
+            'owner' => $this->owner
         ];
     }
 }

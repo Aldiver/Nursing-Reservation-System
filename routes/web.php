@@ -57,7 +57,7 @@ Route::group([
 
 Route::group([
     'namespace' => 'App\Http\Controllers',
-    'middleware' => ['auth', 'role:Admin|Staff'],
+    'middleware' => ['auth', 'role:Admin|Staff|Noter|Approver'],
 ], function () {
     Route::resource('reservations', ReservationController::class);
     Route::resource('dashboard', DashboardController::class);

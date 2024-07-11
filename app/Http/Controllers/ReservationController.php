@@ -9,9 +9,14 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use App\Constants\NotificationTypes;
 
 class ReservationController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Reservation::class, 'reservation');
+    }
     public function index()
     {
         $user = auth()->user();
@@ -81,7 +86,10 @@ class ReservationController extends Controller
             $conflictingOptions = array_values($conflictingOptions);
             $conflict = !empty($conflictingOptions);
 
-            // dd($conflictingOptions);
+            if($conflict) {
+                $owner = User::find($reservation->user_id);
+                event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
+            }
 
             return [
                 'id' => $reservation->id,
@@ -238,10 +246,10 @@ class ReservationController extends Controller
         // Trigger the ReservationEvent for each user
         $auth_user = auth()->user()->name;
 
-        $noterUsers = User::role('admin')->get();
+        $noterUsers = User::permission('noter')->get();
 
         foreach ($noterUsers as $user) {
-            event(new ReservationEvent($user, "Reservation Request", "$auth_user Created a reservation"));
+            event(new ReservationEvent($user, $auth_user, $reservation->id, NotificationTypes::created));
         }
 
         return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} created successfully"));
@@ -274,6 +282,7 @@ class ReservationController extends Controller
         }, ARRAY_FILTER_USE_KEY);
 
         $conflictingOptions = array_values($conflictingOptions);
+
         if($conflictingOptions) {
             session()->flash('error', __(implode(', ', array_values($conflictingOptions)) . ' removed from selection list. (Conflicting schedules)'));
         }
@@ -360,6 +369,14 @@ class ReservationController extends Controller
         // Sync the options with the reservation
         $reservation->options()->sync($optionsWithPax);
 
+        // Trigger the ReservationEvent for each user
+        $auth_user = auth()->user();
+        $owner = User::find($reservation->user_id);
+
+        if($auth_user->id != $reservation->user_id) {
+            event(new ReservationEvent($auth_user, $owner->name, $reservation->id, NotificationTypes::updated));
+        }
+
         $reservation->update([
             'date' => $date,
             'start_time' => $start_time,
@@ -372,7 +389,15 @@ class ReservationController extends Controller
 
     public function destroy(Reservation $reservation)
     {
+        $auth_user = auth()->user();
+        $owner = User::find($reservation->user_id);
+
         $reservation->delete();
+
+        if($auth_user->id != $reservation->user_id) {
+            event(new ReservationEvent($auth_user, $owner->name, $reservation->id, NotificationTypes::deleted));
+        }
+
         return redirect()->route('reservations.index')->with('message', __('Reservation deleted successfully'));
 
     }
@@ -380,8 +405,23 @@ class ReservationController extends Controller
     public function note(Reservation $reservation)
     {
         $this->authorize('noter', $reservation);
+        if($reservation->isNoted && $reservation->noter != null) {
+            return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} already noted"));
+        }
         $reservation->update(['isNoted' => !$reservation->isNoted]);
         $reservation->update(['noted_by' => auth()->id()]);
+
+        $auth_user = auth()->user();
+        $owner = User::find($reservation->user_id);
+
+        event(new ReservationEvent($owner, $auth_user->name, $reservation->id, NotificationTypes::notify_noted));
+
+        $approverUser = User::permission('approver')->get();
+
+        foreach ($approverUser as $user) {
+            event(new ReservationEvent($user, $auth_user, $reservation->id, NotificationTypes::noted));
+        }
+
         return redirect()->route('reservations.index');
     }
 
@@ -390,6 +430,12 @@ class ReservationController extends Controller
         $this->authorize('approver', $reservation);
         $reservation->update(['isApproved' => !$reservation->isApproved]);
         $reservation->update(['approved_by' => auth()->id()]);
+
+        $auth_user = auth()->user();
+        $owner = User::find($reservation->user_id);
+
+        event(new ReservationEvent($owner, $auth_user->name, $reservation->id, NotificationTypes::approved));
+
         return redirect()->route('reservations.index');
     }
 

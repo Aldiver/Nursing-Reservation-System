@@ -35,7 +35,7 @@ const controller_routes = {
                     </PrimaryButton>
                 </SectionTitleLineWithButton>
                 <div class="py-12">
-                    <CardBox class="mb-6" has-table>
+                    <CardBox class="mb-6">
                         <TableComponent
                             :checkable="true"
                             :columns="columns"

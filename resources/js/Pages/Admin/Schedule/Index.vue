@@ -32,18 +32,18 @@ const controller_routes = {
                 >
                     <slot />
                 </SectionTitleLineWithButton>
-            </SectionMain>
 
-            <div class="py-12">
-                <CardBox class="mb-6">
-                    <TableComponent
-                        :checkable="true"
-                        :columns="columns"
-                        :rows="reservations"
-                        :routes="controller_routes"
-                    />
-                </CardBox>
-            </div>
+                <div class="py-12">
+                    <CardBox class="mb-6">
+                        <TableComponent
+                            :checkable="true"
+                            :columns="columns"
+                            :rows="reservations"
+                            :routes="controller_routes"
+                        />
+                    </CardBox>
+                </div>
+            </SectionMain>
         </AuthenticatedLayout>
     </div>
 </template>

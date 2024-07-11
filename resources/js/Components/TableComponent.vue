@@ -13,6 +13,9 @@ import {
 } from "@mdi/js";
 import { useForm } from "@inertiajs/vue3";
 import IconRounded from "./IconRounded.vue";
+import NotificationBar from "./NotificationBar.vue";
+import CardBoxComponentEmpty from "./CardBoxComponentEmpty.vue";
+import CardBox from "./CardBox.vue";
 
 const props = defineProps({
     checkable: Boolean,
@@ -119,117 +122,132 @@ function destroy() {
         <p>Are you sure you want to delete this item?</p>
     </CardBoxModal>
 
-    <table>
-        <thead>
-            <tr>
-                <th />
-                <th
-                    v-for="column in columns"
-                    :key="column.field"
-                    :class="column.class"
-                >
-                    {{ column.label }}
-                </th>
-                <th v-if="permissions.edit || permissions.delete" />
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(row, index) in itemsPaginated" :key="row.id">
-                <!-- <TableCheckboxCell
+    <div v-if="itemsPaginated.length > 0">
+        <table>
+            <thead>
+                <tr>
+                    <th />
+                    <th
+                        v-for="column in columns"
+                        :key="column.field"
+                        :class="column.class"
+                    >
+                        {{ column.label }}
+                    </th>
+                    <th v-if="permissions.edit || permissions.delete" />
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(row, index) in itemsPaginated" :key="row.id">
+                    <!-- <TableCheckboxCell
                     v-if="checkable"
                     @checked="checked($event, row)"
                 /> -->
-                <td>{{ index + 1 + currentPage * 5 }}</td>
-                <td
-                    v-for="column in columns"
-                    :key="column.field"
-                    :data-label="column.label"
-                >
-                    <template v-if="column.action">
-                        <IconRounded
-                            v-if="row.conflict && !row.isApproved"
-                            color="warning"
-                            :icon="mdiAlert"
-                            small
-                            v-tooltip="
-                                `Conflict schedules for ${row['conflictData']}`
-                            "
-                        />
+                    <td>{{ index + 1 + currentPage * 5 }}</td>
+                    <td
+                        v-for="column in columns"
+                        :key="column.field"
+                        :data-label="column.label"
+                    >
+                        <template v-if="column.action">
+                            <IconRounded
+                                v-if="row.conflict && !row.isApproved"
+                                color="warning"
+                                :icon="mdiAlert"
+                                small
+                                v-tooltip="
+                                    `Conflict schedules for ${row['conflictData']}`
+                                "
+                            />
 
-                        <BaseButton
-                            v-else-if="buttonToDisplay(column.action, row)"
-                            :href="
-                                route(`reservation.${column.action}`, row.id)
-                            "
-                            color="info"
-                            :icon="mdiCheckCircleOutline"
-                            small
-                        />
-                        <span v-else>
-                            {{ getCellContent(column.action, row) }}
-                        </span>
-                    </template>
-                    <template v-else>
-                        <div v-if="Array.isArray(row[column.field])">
-                            <span
-                                v-for="(opt, idx) in row[column.field]"
-                                :key="idx"
-                            >
-                                {{ opt }} <br />
+                            <BaseButton
+                                v-else-if="buttonToDisplay(column.action, row)"
+                                :route-name="
+                                    route(
+                                        `reservation.${column.action}`,
+                                        row.id
+                                    )
+                                "
+                                color="info"
+                                preserve-state
+                                :icon="mdiCheckCircleOutline"
+                                small
+                            />
+                            <span v-else>
+                                {{ getCellContent(column.action, row) }}
                             </span>
-                        </div>
-                        <span v-else-if="column.field == 'remarks'">
-                            <pre class="font-figtree">{{
-                                row[column.field]
-                            }}</pre>
-                        </span>
-                        <span v-else>
-                            {{ row[column.field] }}
-                        </span>
-                    </template>
-                </td>
-                <td class="before:hidden lg:w-1 whitespace-nowrap">
-                    <BaseButtons type="justify-start lg:justify-end" no-wrap>
-                        <BaseButton
-                            v-if="permissions.show"
-                            color="info"
-                            :icon="mdiEyeCircle"
-                            :href="route(routes.show, row.id)"
-                            small
-                        />
-                        <BaseButton
-                            v-if="permissions.edit"
-                            color="success"
-                            :icon="mdiTextBoxEdit"
-                            :href="route(routes.edit, row.id)"
-                            small
-                        />
-                        <BaseButton
-                            v-if="permissions.delete"
-                            color="danger"
-                            :icon="mdiTrashCan"
-                            small
-                            @click="confirmDelete(row.id)"
-                        />
-                    </BaseButtons>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="p-3 lg:px-6 border-t border-gray-100 dark:border-slate-800">
-        <BaseLevel>
-            <BaseButtons>
-                <BaseButton
-                    v-for="page in pagesList"
-                    :key="page"
-                    :active="page === currentPage"
-                    :label="page + 1"
-                    small
-                    @click="currentPage = page"
-                />
-            </BaseButtons>
-            <small>Page {{ currentPageHuman }} of {{ numPages }}</small>
-        </BaseLevel>
+                        </template>
+                        <template v-else>
+                            <div v-if="Array.isArray(row[column.field])">
+                                <span
+                                    v-for="(opt, idx) in row[column.field]"
+                                    :key="idx"
+                                >
+                                    {{ opt }} <br />
+                                </span>
+                            </div>
+                            <span v-else-if="column.field == 'remarks'">
+                                <pre class="font-figtree">{{
+                                    row[column.field]
+                                }}</pre>
+                            </span>
+                            <span v-else>
+                                {{ row[column.field] }}
+                            </span>
+                        </template>
+                    </td>
+                    <td class="before:hidden lg:w-1 whitespace-nowrap">
+                        <BaseButtons
+                            type="justify-start lg:justify-end"
+                            no-wrap
+                        >
+                            <BaseButton
+                                v-if="permissions.show"
+                                color="info"
+                                :icon="mdiEyeCircle"
+                                :href="route(routes.show, row.id)"
+                                small
+                            />
+                            <BaseButton
+                                v-if="permissions.edit"
+                                color="success"
+                                :icon="mdiTextBoxEdit"
+                                :href="route(routes.edit, row.id)"
+                                small
+                            />
+                            <BaseButton
+                                v-if="permissions.delete"
+                                color="danger"
+                                :icon="mdiTrashCan"
+                                small
+                                @click="confirmDelete(row.id)"
+                            />
+                        </BaseButtons>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="p-3 lg:px-6 border-t border-gray-100 dark:border-slate-800">
+            <BaseLevel>
+                <BaseButtons>
+                    <BaseButton
+                        v-for="page in pagesList"
+                        :key="page"
+                        :active="page === currentPage"
+                        :label="page + 1"
+                        small
+                        @click="currentPage = page"
+                    />
+                </BaseButtons>
+                <small>Page {{ currentPageHuman }} of {{ numPages }}</small>
+            </BaseLevel>
+        </div>
+    </div>
+
+    <div v-else>
+        <CardBox>
+            <CardBoxComponentEmpty />
+        </CardBox>
     </div>
 </template>
 <style scoped>

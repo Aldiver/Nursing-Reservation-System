@@ -11,10 +11,7 @@ class DepartmentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:show', ['only' => ['index', 'show']]);
-        $this->middleware('can:create', ['only' => ['create', 'store']]);
-        $this->middleware('can:edit', ['only' => ['index', 'edit', 'update']]);
-        $this->middleware('can:delete', ['only' => ['destroy']]);
+        $this->authorizeResource(Department::class, 'department');
     }
 
     public function index()

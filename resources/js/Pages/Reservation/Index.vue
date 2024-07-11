@@ -7,7 +7,7 @@ import NotificationBar from "@/Components/NotificationBar.vue";
 import { Head, Link } from "@inertiajs/vue3";
 import TableComponent from "@/Components/TableComponent.vue";
 import CardBox from "@/Components/CardBox.vue";
-import { mdiListBox } from "@mdi/js";
+import { mdiListBox, mdiAlertBoxOutline } from "@mdi/js";
 
 const props = defineProps({
     reservations: Array,
@@ -44,7 +44,7 @@ const controller_routes = {
             </NotificationBar>
 
             <div class="py-12">
-                <CardBox class="mb-6 w-full" has-table>
+                <CardBox class="mb-6 w-full">
                     <TableComponent
                         :checkable="true"
                         :columns="columns"
