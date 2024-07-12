@@ -20,10 +20,6 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-    permissions: {
-        type: Object,
-        default: () => ({}),
-    },
     departments: {
         type: Object,
         default: () => ({}),
@@ -35,7 +31,6 @@ const form = useForm({
     email: props.user.email,
     contact_number: props.user.contact_number,
     role: props.user.roles[0].label,
-    permissions: Object.keys(props.user.permissions),
     department: props.user.department.label,
 });
 </script>
@@ -138,13 +133,6 @@ const form = useForm({
                         <FormControl
                             v-model="form.role"
                             :options="props.roles"
-                        />
-                    </FormField>
-                    <FormField label="Permissions" wrap-body>
-                        <FormCheckRadioGroup
-                            v-model="form.permissions"
-                            name="roles"
-                            :options="props.permissions"
                         />
                     </FormField>
                     <template #footer>

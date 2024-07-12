@@ -184,13 +184,13 @@ class UserController extends Controller
 
         // $user->assignRole($request->role);
 
-        if ($request->has('permissions')) {
-            // Fetch permission models based on IDs
-            $permissions = Permission::whereIn('id', $request->permissions)->get();
+        // if ($request->has('permissions')) {
+        //     // Fetch permission models based on IDs
+        //     $permissions = Permission::whereIn('id', $request->permissions)->get();
 
-            // Give permissions to the user
-            $user->syncPermissions($permissions);
-        }
+        //     // Give permissions to the user
+        //     $user->syncPermissions($permissions);
+        // }
 
         $user->department()->associate($department);
         $user->save();
