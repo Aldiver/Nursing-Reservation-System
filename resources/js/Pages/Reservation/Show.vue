@@ -24,6 +24,7 @@ const reservation_data = ref({
     Schedule: `${formatDate(props.reservation.date)} ${formatTime(
         props.reservation.start_time
     )} - ${formatTime(props.reservation.end_time)}`,
+    Options: props.reservation.options,
     Purpose: [
         ...props.reservation.purpose.purpose,
         props.reservation.purpose.others,
@@ -70,7 +71,20 @@ const reservation_data = ref({
                         <tbody>
                             <tr v-for="(value, index) in reservation_data">
                                 <td>{{ index }}</td>
-                                <td>{{ value }}</td>
+                                <td v-if="Array.isArray(value)">
+                                    <span
+                                        v-for="option in value"
+                                        :key="option.id"
+                                    >
+                                        {{ option.name }}
+                                        <span v-if="option.with_pax">
+                                            | (Number of pax
+                                            {{ option.pivot.pax }})</span
+                                        >
+                                        <br />
+                                    </span>
+                                </td>
+                                <td v-else>{{ value }}</td>
                             </tr>
                         </tbody>
                     </table>

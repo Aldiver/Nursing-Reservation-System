@@ -259,7 +259,7 @@ class ReservationController extends Controller
 
     public function show(Reservation $reservation)
     {
-        $reservation->load('user', 'noter', 'approver');
+        $reservation->load('user', 'noter', 'approver', 'options');
         return inertia('Reservation/Show', [
             'reservation' => $reservation,
         ]);
