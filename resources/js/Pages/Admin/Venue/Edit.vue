@@ -222,23 +222,28 @@ const remove_options = (opt) => {
                                 @click="remove_options(option)"
                             />
                             <label class="block font-bold w-full">
-                                {{ option.name }}</label
+                                {{ option.name }}
+                                <span
+                                    v-if="option.max_pax"
+                                    class="ml-2 text-xs text-gray-500 dark:text-slate-400 mt-1"
+                                >
+                                    {{ `(Max pax - ${option.max_pax})` }}</span
+                                ></label
                             >
                         </div>
                         <div
                             class="flex-1 mt-2 w-1/2 space-x-4 px-6 items-center rounded-xl"
-                        >
-                            <BaseButton
-                                label="Add more option"
-                                :icon="mdiPlus"
-                                small
-                                outline
-                                roundedFull
-                                color="darkWhite"
-                                @click="showModal = !showModal"
-                            />
-                        </div>
+                        ></div>
                     </div>
+                    <BaseButton
+                        label="Add more option"
+                        :icon="mdiPlus"
+                        small
+                        outline
+                        roundedFull
+                        color="darkWhite"
+                        @click="showModal = !showModal"
+                    />
                     <BaseDivider />
                     <template #footer>
                         <BaseButtons>

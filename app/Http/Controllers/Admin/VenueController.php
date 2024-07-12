@@ -64,9 +64,34 @@ class VenueController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
+            'options' => 'nullable|array',
+            'options.*.name' => 'required|string|max:255',
+            'options.*.with_pax' => 'boolean',
+            'options.*.max_pax' => 'nullable|integer',
         ]);
 
-        $venue = Venue::create($request->all());
+        $venue = Venue::create([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        if ($request->has('options')) {
+            $options = collect($request->input('options'));
+
+            $options->each(function ($option) use ($venue) {
+                $venue->options()->create(
+                    [
+                        'name' => $option['name'],
+                        'with_pax' => $option['with_pax'],
+                        'max_pax' => $option['max_pax'],
+                    ]
+                );
+            });
+
+            // Remove options that are not in the request
+            $optionNames = $options->pluck('name')->toArray();
+            $venue->options()->whereNotIn('name', $optionNames)->delete();
+        }
 
         return redirect()->route('admin.venues.show', $venue)->with('message', __('Venue created successfully'));
         ;

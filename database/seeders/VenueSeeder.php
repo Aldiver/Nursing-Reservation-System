@@ -29,8 +29,8 @@ class VenueSeeder extends Seeder
                     ['name' => 'Operating Room'],
                     ['name' => 'Delivery Room'],
                     ['name' => 'Central Supply Room'],
-                    ['name' => 'Amphitheater (40 persons)', 'with_pax' => true, 'max' => 40],
-                    ['name' => 'Nutrition Room (30 persons)', 'with_pax' => true, 'max' => 30],
+                    ['name' => 'Amphitheater', 'with_pax' => true, 'max' => 40],
+                    ['name' => 'Nutrition Room', 'with_pax' => true, 'max' => 30],
                 ],
             ],
             [

@@ -409,6 +409,12 @@ watchEffect(() => {
                                                 class="mt-2 ml-4 p-2"
                                                 placeholder="Enter number of people"
                                             />
+                                            <span
+                                                class="ml-6 text-xs text-gray-500 dark:text-slate-400 mt-1"
+                                            >
+                                                Maximum pax is
+                                                {{ option.max_pax }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

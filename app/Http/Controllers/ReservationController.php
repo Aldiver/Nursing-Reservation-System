@@ -26,7 +26,7 @@ class ReservationController extends Controller
         $canApprove = $user->can('approver');
 
         // Fetch reservations based on permissions
-        $reservations = ($canNote || $canApprove) ? Reservation::with(['user', 'noter', 'approver'])->get([
+        $reservations = ($canNote || $canApprove) ? Reservation::with(['user', 'noter', 'approver', 'options'])->get([
             'id',
             'date',
             'purpose',
@@ -59,7 +59,9 @@ class ReservationController extends Controller
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
 
-            $options = $reservation->options->sortBy('id')->pluck('name')->toArray();
+            $options = $reservation->options->sortBy('id')->map(function ($option) {
+                return $option->pivot->pax ? "{$option->name} - ({$option->pivot->pax} pax)" : $option->name;
+            })->toArray();
 
             // Format purpose
             $purposeData = is_array($reservation->purpose) ? $reservation->purpose : json_decode($reservation->purpose, true);
