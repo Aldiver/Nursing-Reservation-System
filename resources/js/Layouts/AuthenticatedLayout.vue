@@ -28,16 +28,37 @@ const isDarkMode = ref(false);
 
 const styleStore = useStyleStore();
 const notifications = ref([]);
+const unreadNotificationCount = ref(0);
+
+const unreadNotifsCount = () => {
+    notify.fetchUnreadNotifications().then((data) => {
+        unreadNotificationCount.value = data.length;
+    });
+};
 
 const loadData = () => {
-    notify.fetchUnreadNotifications().then((data) => {
+    notify.fetchNotifications().then((data) => {
+        unreadNotifsCount();
         console.log("Notifications: ", data);
         notifications.value = data;
     });
 };
 
+const markNotifAll = () => {
+    console.log("closed papers");
+    notify.markAllNotificationsAsRead().then(() => {
+        loadData();
+    });
+};
+
 const markNotif = (id) => {
     notify.markNotificationAsRead(id).then(() => {
+        loadData();
+    });
+};
+
+const deleteNotif = (id) => {
+    notify.deleteNotification(id).then(() => {
         loadData();
     });
 };
@@ -112,7 +133,7 @@ const navItems = [
         class="flex flex-row min-h-screen overflow-hidden"
     >
         <div
-            class="flex min-h-screen w-screen transition-position lg:w-auto bg-gray-200 dark:bg-slate-800 dark:text-slate-100"
+            class="flex min-h-screen transition-position lg:w-auto bg-gray-200 dark:bg-slate-800 dark:text-slate-100"
         >
             <aside
                 id="aside"
@@ -210,12 +231,12 @@ const navItems = [
                         </button>
                         <!-- Notification Bell -->
                         <div class="relative">
-                            <CardBoxNotifications>
+                            <CardBoxNotifications @closed="markNotifAll">
                                 <template #trigger>
                                     <BaseIconWithBadge
                                         :size="24"
                                         :path="mdiBellOutline"
-                                        :notifications="notifications"
+                                        :notifications="unreadNotificationCount"
                                     />
                                 </template>
                                 <template #content>
@@ -226,59 +247,94 @@ const navItems = [
                                             role="alert"
                                         >
                                             <div
-                                                v-for="notification in notifications"
-                                                :key="notification.id"
-                                                class="flex py-2 rounded-lg hover:dark:bg-slate-700"
+                                                id="toast-interactive"
+                                                class="w-full right-4 top-10 z-50 max-w-xs p-2 text-gray-500 shadow dark:text-gray-400"
+                                                role="alert"
                                             >
                                                 <div
-                                                    class="ms-3 text-sm font-normal"
+                                                    v-for="notification in notifications"
+                                                    :key="notification.id"
+                                                    :class="[
+                                                        'mb-2 pr-2 rounded-lg flex items-center hover:dark:bg-slate-700',
+                                                        {
+                                                            'bg-gray-100 dark:bg-gray-700':
+                                                                !notification.read_at,
+                                                        },
+                                                    ]"
                                                 >
-                                                    <span
-                                                        class="mb-1 text-sm font-semibold text-gray-900 dark:text-white"
-                                                        >{{
-                                                            notification.data
-                                                                .title
-                                                        }}</span
+                                                    <button
+                                                        type="button"
+                                                        @click.prevent="
+                                                            markNotif(
+                                                                notification.id
+                                                            )
+                                                        "
+                                                        class="flex-grow text-left"
                                                     >
-                                                    <div
-                                                        class="mb-2 text-sm font-normal"
+                                                        <div
+                                                            class="ms-3 text-sm font-normal"
+                                                        >
+                                                            <div
+                                                                class="flex items-center mb-1"
+                                                            >
+                                                                <span
+                                                                    class="font-semibold text-gray-900 dark:text-white"
+                                                                    >{{
+                                                                        notification
+                                                                            .data
+                                                                            .title
+                                                                    }}</span
+                                                                >
+                                                                <span
+                                                                    v-if="
+                                                                        !notification.read_at
+                                                                    "
+                                                                    class="ml-2 h-2 w-2 bg-blue-500 rounded-full"
+                                                                ></span>
+                                                            </div>
+                                                            <div
+                                                                class="text-sm font-normal"
+                                                            >
+                                                                {{
+                                                                    notification
+                                                                        .data
+                                                                        .body
+                                                                }}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        class="ms-auto -my-1.5 bg-white items-center justify-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                                                        data-dismiss-target="#toast-interactive"
+                                                        aria-label="Close"
+                                                        @click.prevent="
+                                                            deleteNotif(
+                                                                notification.id
+                                                            )
+                                                        "
                                                     >
-                                                        {{
-                                                            notification.data
-                                                                .body
-                                                        }}
-                                                    </div>
+                                                        <span class="sr-only"
+                                                            >Close</span
+                                                        >
+                                                        <svg
+                                                            class="w-3 h-3"
+                                                            aria-hidden="true"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="none"
+                                                            viewBox="0 0 14 14"
+                                                        >
+                                                            <path
+                                                                stroke="currentColor"
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                                            />
+                                                        </svg>
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    class="ms-auto -my-1.5 bg-white items-center justify-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-                                                    data-dismiss-target="#toast-interactive"
-                                                    aria-label="Close"
-                                                    @click.prevent="
-                                                        markNotif(
-                                                            notification.id
-                                                        )
-                                                    "
-                                                >
-                                                    <span class="sr-only"
-                                                        >Close</span
-                                                    >
-                                                    <svg
-                                                        class="w-3 h-3"
-                                                        aria-hidden="true"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 14 14"
-                                                    >
-                                                        <path
-                                                            stroke="currentColor"
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                                        />
-                                                    </svg>
-                                                </button>
                                             </div>
                                         </div>
 

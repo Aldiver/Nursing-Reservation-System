@@ -70,7 +70,7 @@ watch(otherPurpose, (newValue) => {
 });
 
 const submit = () => {
-    console.log("Submitting form:", form);
+    // console.log("Submitting form:", form);
     form.post(route("reservations.store"));
 };
 

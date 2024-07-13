@@ -59,6 +59,8 @@ class ReservationController extends Controller
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
 
+            // dd($reservation->start_time, $reservation->end_time);
+
             $options = $reservation->options->sortBy('id')->map(function ($option) {
                 return $option->pivot->pax ? "{$option->name} - ({$option->pivot->pax} pax)" : $option->name;
             })->toArray();
@@ -87,7 +89,6 @@ class ReservationController extends Controller
 
             $conflictingOptions = array_values($conflictingOptions);
             $conflict = !empty($conflictingOptions);
-
             if($conflict) {
                 $owner = User::find($reservation->user_id);
                 event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
@@ -203,8 +204,20 @@ class ReservationController extends Controller
 
         // Validate date constraints for reservation times
         $date = new \DateTime($request->date);
-        if ($date->format('N') >= 6 && !($date->format('N') == 6 && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
-            return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM, and Saturdays from 8 AM to 12 PM.']);
+
+        // Check if it's a weekend (Saturday or Sunday)
+        if ($date->format('N') >= 6) {
+            // If it's Saturday (6) or Sunday (7)
+            if (!($date->format('N') == 6 && $start_time >= '08:00' && $end_time <= '12:00')) {
+                // Only allow reservations on Saturdays from 8 AM to 12 PM
+                return back()->withErrors(['date' => 'Reservations are only allowed on Saturdays from 8 AM to 12 PM.']);
+            }
+        } else {
+            // If it's a weekday (Monday to Friday)
+            if (!($request->start_time >= '07:00' && $request->end_time <= '16:00')) {
+                // Only allow reservations on weekdays from 7 AM to 4 PM
+                return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM.']);
+            }
         }
 
         // Find users with specific roles and permissions
@@ -349,8 +362,20 @@ class ReservationController extends Controller
 
         // Validate date constraints for reservation times
         $date = new \DateTime($request->date);
-        if ($date->format('N') >= 6 && !($date->format('N') == 6 && $request->start_time >= '08:00' && $request->end_time <= '12:00')) {
-            return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM, and Saturdays from 8 AM to 12 PM.']);
+
+        // Check if it's a weekend (Saturday or Sunday)
+        if ($date->format('N') >= 6) {
+            // If it's Saturday (6) or Sunday (7)
+            if (!($date->format('N') == 6 && $start_time >= '08:00' && $end_time <= '12:00')) {
+                // Only allow reservations on Saturdays from 8 AM to 12 PM
+                return back()->withErrors(['date' => 'Reservations are only allowed on Saturdays from 8 AM to 12 PM.']);
+            }
+        } else {
+            // If it's a weekday (Monday to Friday)
+            if (!($request->start_time >= '07:00' && $request->end_time <= '16:00')) {
+                // Only allow reservations on weekdays from 7 AM to 4 PM
+                return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM.']);
+            }
         }
 
         // Prepare the array of option IDs with their corresponding pax values
@@ -405,26 +430,36 @@ class ReservationController extends Controller
 
     public function note(Reservation $reservation)
     {
+        // Authorize the action
         $this->authorize('noter', $reservation);
-        if($reservation->isNoted && $reservation->noter != null) {
+
+        // Check if the reservation is already noted and redirect if true
+        if ($reservation->isNoted && $reservation->noted_by != null) {
             return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} already noted"));
         }
-        $reservation->update(['isNoted' => !$reservation->isNoted]);
-        $reservation->update(['noted_by' => auth()->id()]);
 
-        $auth_user = auth()->user();
-        $owner = User::find($reservation->user_id);
+        // Update reservation's noted status and noted_by fields
+        $reservation->update([
+            'isNoted' => !$reservation->isNoted,
+            'noted_by' => auth()->id()
+        ]);
 
-        event(new ReservationEvent($owner, $auth_user->name, $reservation->id, NotificationTypes::notify_noted));
+        $authUser = auth()->user();
+        $owner = $reservation->user;
 
-        $approverUser = User::permission('approver')->get();
-
-        foreach ($approverUser as $user) {
-            event(new ReservationEvent($user, $auth_user, $reservation->id, NotificationTypes::noted));
+        // Trigger event for the owner if they are not the one noting the reservation
+        if ($owner->id != $authUser->id) {
+            event(new ReservationEvent($owner, $authUser->name, $reservation->id, NotificationTypes::notify_noted));
         }
+
+        // Trigger event for all users with the 'approver' permission
+        User::permission('approver')->each(function ($user) use ($authUser, $reservation) {
+            event(new ReservationEvent($user, $authUser->name, $reservation->id, NotificationTypes::noted));
+        });
 
         return redirect()->route('reservations.index');
     }
+
 
     public function approve(Reservation $reservation)
     {
@@ -442,9 +477,19 @@ class ReservationController extends Controller
 
     public function getUnavailableOptions(Request $request)
     {
-        $date = $request->input('date');
-        $startTime = $request->input('start_time');
-        $endTime = $request->input('end_time');
+        $startTime = null;
+        $endTime = null;
+        $date = null;
+        if($request->start_time) {
+            $startTime = Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i');
+        }
+        if($request->end_time) {
+            $endTime = Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i');
+        }
+        if($request->date) {
+            $date = new \DateTime($request->date);
+        }
+
         $currentReservationId = $request->input('id');
 
         $unavailableOptions = $this->getUnavailableOptionsForTimeRange($date, $startTime, $endTime, $currentReservationId);
@@ -454,17 +499,20 @@ class ReservationController extends Controller
 
     private function getUnavailableOptionsForTimeRange($date, $startTime, $endTime, $currentReservationId = null)
     {
-        $checkOverlap = function ($a, $b, $c, $d) {
-            return max($a, $c) < min($b, $d);
-        };
+        // $checkOverlap = function ($a, $b, $c, $d) {
+        //     return max($a, $c) < min($b, $d);
+        // };
 
-        $query = Reservation::query()
-            ->where('isApproved', true)
-            ->whereDate('date', $date);
 
-        if ($startTime && $endTime) {
-            $query->where(function ($query) use ($startTime, $endTime, $checkOverlap) {
-                $checkOverlap('start_time', 'end_time', $startTime, $endTime);
+        $query = Reservation::query()->where('isApproved', true)
+        ->whereDate('date', $date);
+
+        if ($date && $startTime && $endTime) {
+            $query->where(function ($query) use ($startTime, $endTime) {
+                $query->where(function ($subquery) use ($startTime, $endTime) {
+                    $subquery->where('start_time', '<=', $endTime)
+                        ->where('end_time', '>', $startTime);
+                });
             });
         }
 
@@ -478,8 +526,10 @@ class ReservationController extends Controller
         foreach ($reservations as $reservation) {
             foreach ($reservation->options as $option) {
                 $unavailableOptions[] = $option->id;
+
             }
         }
+
 
         return $unavailableOptions;
     }

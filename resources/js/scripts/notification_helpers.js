@@ -33,7 +33,7 @@ const markNotificationAsRead = async (id) => {
                 withCredentials: true,
             }
         );
-        console.log(`Data response: ${response.data}`);
+        // console.log(`Data response: ${response.data}`);
         return response.data;
     } catch (error) {
         console.error(`Error marking notification ${id} as read:`, error);

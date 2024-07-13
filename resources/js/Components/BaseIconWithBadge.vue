@@ -21,13 +21,13 @@ const props = defineProps({
         default: null,
     },
     notifications: {
-        type: Array,
-        default: () => [],
+        type: Number,
+        default: null,
     },
 });
 
 const badgeCount = computed(() => {
-    return props.notifications.length;
+    return props.notifications;
 });
 </script>
 

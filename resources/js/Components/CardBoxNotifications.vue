@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 const props = defineProps({
     align: {
@@ -15,6 +15,8 @@ const props = defineProps({
         default: "py-1 bg-white dark:bg-slate-900",
     },
 });
+
+const emit = defineEmits(["closed"]);
 
 const closeOnEscape = (e) => {
     if (open.value && e.key === "Escape") {
@@ -42,6 +44,12 @@ const alignmentClasses = computed(() => {
 });
 
 const open = ref(false);
+
+watch(open, (newVal, oldVal) => {
+    if (oldVal === true && newVal === false) {
+        emit("closed");
+    }
+});
 </script>
 
 <template>
@@ -72,7 +80,7 @@ const open = ref(false);
                 style="display: none"
             >
                 <div
-                    class="rounded-xl ring-1 ring-black ring-opacity-5 overflow-y-auto"
+                    class="rounded-xl ring-1 ring-black ring-opacity-5 overflow-y-auto max-h-96"
                     :class="contentClasses"
                 >
                     <div

@@ -129,8 +129,9 @@ const generateTimeOptions = (
     startMinute = 0
 ) => {
     const options = [];
-    for (let hour = startHour; hour < endHour; hour++) {
+    for (let hour = startHour; hour <= endHour; hour++) {
         for (let minute = startMinute; minute < 60; minute += interval) {
+            if (hour === endHour && minute >= startMinute) break;
             const period = hour < 12 ? "AM" : "PM";
             const hourFormatted = hour % 12 || 12;
             const time = `${hourFormatted.toString().padStart(2, "0")}:${minute
@@ -146,47 +147,52 @@ const generateTimeOptions = (
     return options;
 };
 
-const getTimeRange = (forEndTime = false, endTimeStart) => {
-    const date = new Date(form.date);
+const getTimeRange = (date, forEndTime = false, endTimeStart = null) => {
     if (isWeekday(date)) {
         return forEndTime
-            ? generateTimeOptions(endTimeStart, 17, 30, forEndTime) // 7:00 AM to 4:00 PM for end time
+            ? generateTimeOptions(endTimeStart, 17, 30, forEndTime)
             : generateTimeOptions(7, 16, 30); // 7:00 AM to 3:30 PM for start time
     } else if (isSaturday(date)) {
         return forEndTime
-            ? generateTimeOptions(endTimeStart, 14, 30, forEndTime) // 8:00 AM to 1:00 PM for end time
-            : generateTimeOptions(8, 13, 30); // 8:00 AM to 12:30 PM for start time
+            ? generateTimeOptions(endTimeStart, 13, 30, forEndTime)
+            : generateTimeOptions(8, 12, 30); // 8:00 AM to 11:30 AM for start time
     } else {
         return [];
     }
 };
 
-const startTimeOptions = computed(() => getTimeRange());
+const startTimeOptions = computed(() => getTimeRange(form.date));
 const endTimeOptions = computed(() => {
     if (!form.start_time) {
         return [];
     }
 
     // Parse selected start time
-    const startHour =
-        parseInt(form.start_time.split(":")[0], 10) +
-        (form.start_time.includes("PM") ? 12 : 0);
-    const startMinute = parseInt(form.start_time.split(":")[1], 10);
+    const [startHourString, startMinuteString] = form.start_time.split(/:| /);
+    let startHour = parseInt(startHourString, 10);
+    const startMinute = parseInt(startMinuteString, 10);
+    if (form.start_time.includes("PM") && startHour !== 12) {
+        startHour += 12;
+    } else if (form.start_time.includes("AM") && startHour === 12) {
+        startHour = 0;
+    }
 
     // Filter end time options based on start time
-    return getTimeRange(true, startHour).filter((time) => {
-        const endHour =
-            parseInt(time.split(":")[0], 10) + (time.includes("PM") ? 12 : 0);
-        const endMinute = parseInt(time.split(":")[1], 10);
+    return getTimeRange(form.date, true, startHour).filter((time) => {
+        const [endHourString, endMinuteString] = time.split(/:| /);
+        let endHour = parseInt(endHourString, 10);
+        const endMinute = parseInt(endMinuteString, 10);
+        if (time.includes("PM") && endHour !== 12) {
+            endHour += 12;
+        } else if (time.includes("AM") && endHour === 12) {
+            endHour = 0;
+        }
 
         // Ensure end time is after start time
-        if (
+        return (
             endHour > startHour ||
             (endHour === startHour && endMinute > startMinute)
-        ) {
-            return true;
-        }
-        return false;
+        );
     });
 });
 
@@ -218,6 +224,7 @@ const fetchUnavailableOptions = async () => {
                 currentReservationId: props.reservation.id,
             },
         });
+
         return response.data.unavailableOptions;
     } catch (error) {
         console.error("Error fetching unavailable options:", error);

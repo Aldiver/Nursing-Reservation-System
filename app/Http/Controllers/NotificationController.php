@@ -11,7 +11,7 @@ class NotificationController extends Controller
 
         // App::setLocale('en');
 
-        $notifications = auth()->user()->notifications()->get();
+        $notifications = auth()->user()->notifications()->orderBy('created_at', 'desc')->get();
         return response($notifications);
     }
 
@@ -37,13 +37,13 @@ class NotificationController extends Controller
     public function markAllNotifications()
     {
         auth()->user()->unreadNotifications->markAsRead();
-        return response();
+        return response("okay");
     }
 
     #delete specific notification
     public function destroy(Request $request, $id)
     {
         auth()->user()->notifications()->where('id', $id)->delete();
-        return response();
+        return response("okay");
     }
 }
