@@ -25,12 +25,14 @@ class ReservationEvent
     public $message;
     public $reservation_id;
     // public $
+    public $notif_type;
 
     public function __construct($user, $owner, $reservation_id, $eventType)
     {
         $this->user = $user;
         $this->owner = $owner;
         $this->reservation_id = $reservation_id;
+        $this->notif_type = $eventType;
         $this->setEventDetails($eventType);
     }
 

@@ -37,13 +37,19 @@ class NotificationController extends Controller
     public function markAllNotifications()
     {
         auth()->user()->unreadNotifications->markAsRead();
-        return response("okay");
+        return response("All notifications marked read.");
+    }
+
+    public function destroyAll()
+    {
+        auth()->user()->notifications()->delete();
+        return response("All notifications deleted.");
     }
 
     #delete specific notification
     public function destroy(Request $request, $id)
     {
         auth()->user()->notifications()->where('id', $id)->delete();
-        return response("okay");
+        return response("Notification with $id deleted.");
     }
 }

@@ -66,10 +66,23 @@ const deleteNotification = async (id) => {
     }
 };
 
+const deleteAllNotification = async () => {
+    try {
+        const response = await axios.get("/api/notifications/delete", {
+            withCredentials: true,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting notifications:", error);
+        return [];
+    }
+};
+
 export default {
     fetchNotifications,
     fetchUnreadNotifications,
     markNotificationAsRead,
     markAllNotificationsAsRead,
     deleteNotification,
+    deleteAllNotification,
 };

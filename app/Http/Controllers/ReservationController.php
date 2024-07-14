@@ -61,9 +61,10 @@ class ReservationController extends Controller
 
             // dd($reservation->start_time, $reservation->end_time);
 
+
             $options = $reservation->options->sortBy('id')->map(function ($option) {
                 return $option->pivot->pax ? "{$option->name} - ({$option->pivot->pax} pax)" : $option->name;
-            })->toArray();
+            })->values()->toArray();
 
             // Format purpose
             $purposeData = is_array($reservation->purpose) ? $reservation->purpose : json_decode($reservation->purpose, true);
@@ -89,9 +90,20 @@ class ReservationController extends Controller
 
             $conflictingOptions = array_values($conflictingOptions);
             $conflict = !empty($conflictingOptions);
+
+            // auth()->user()->unreadNotifications->where('id', $id)->get();
             if($conflict) {
+
                 $owner = User::find($reservation->user_id);
-                event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
+                $existingNotification = $owner->notifications()
+                    ->where('data->reservation', $reservation->id)
+                    ->where('data->notif_type', 'conflict')
+                    ->first();
+
+                if(!$existingNotification) {
+                    event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
+                }
+
             }
 
             return [

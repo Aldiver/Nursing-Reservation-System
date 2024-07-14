@@ -15,17 +15,19 @@ class ReservationNotification extends Notification
     private $notif_title;
     private $notif_message;
     private $reservation_id;
+    private $notif_type;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($user, $owner, $reservation_id, $notif_title = "Reservation Notification", $notif_message = "Notification Message")
+    public function __construct($user, $owner, $reservation_id, $notif_title = "Reservation Notification", $notif_message = "Notification Message", $notif_type = "")
     {
         $this->user = $user;
         $this->owner = $owner;
         $this->reservation_id = $reservation_id;
         $this->notif_title = $notif_title;
         $this->notif_message = $notif_message;
+        $this->notif_type = $notif_type;
     }
 
     /**
@@ -60,7 +62,8 @@ class ReservationNotification extends Notification
             'title' => $this->notif_title,
             'body'  => $this->notif_message,
             'reservation' => $this->reservation_id,
-            'owner' => $this->owner
+            'owner' => $this->owner,
+            'notif_type' => $this->notif_type,
         ];
     }
 }

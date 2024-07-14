@@ -201,6 +201,7 @@ watch(
     (newDate) => {
         form.start_time = "";
         form.end_time = "";
+        form.options = [];
     }
 );
 
