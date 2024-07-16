@@ -30,9 +30,9 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Assign Permissions to Roles
         $admin->givePermissionTo($create, $edit, $delete, $show, $note, $approve);
-        $staff->givePermissionTo($show, $create, $edit, $delete);
-        $noter->givePermissionTo($show, $create, $edit, $delete, $note);
-        $approver->givePermissionTo($show, $create, $edit, $delete, $approve);
+        $staff->givePermissionTo($show, $create);
+        $noter->givePermissionTo($show, $create, $note);
+        $approver->givePermissionTo($show, $create, $delete, $approve);
 
         // Create a super admin user
         $user = \App\Models\User::factory()->create([

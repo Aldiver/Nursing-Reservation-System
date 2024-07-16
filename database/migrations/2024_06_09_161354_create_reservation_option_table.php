@@ -10,12 +10,6 @@ return new class () extends Migration {
      */
     public function up()
     {
-        // Schema::create('option_reservation', function (Blueprint $table) {
-        //     $table->foreignId('reservation_id')->constrained()->onDelete('cascade');
-        //     $table->foreignId('option_id')->constrained()->onDelete('cascade');
-        //     $table->timestamps();
-        // });
-
         Schema::create('option_reservation', function (Blueprint $table) {
             $table->id();
             $table->foreignId('reservation_id')->constrained()->onDelete('cascade');

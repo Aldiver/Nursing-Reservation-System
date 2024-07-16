@@ -511,11 +511,6 @@ class ReservationController extends Controller
 
     private function getUnavailableOptionsForTimeRange($date, $startTime, $endTime, $currentReservationId = null)
     {
-        // $checkOverlap = function ($a, $b, $c, $d) {
-        //     return max($a, $c) < min($b, $d);
-        // };
-
-
         $query = Reservation::query()->where('isApproved', true)
         ->whereDate('date', $date);
 
@@ -541,8 +536,6 @@ class ReservationController extends Controller
 
             }
         }
-
-
         return $unavailableOptions;
     }
 }
