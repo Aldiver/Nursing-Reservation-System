@@ -22,6 +22,7 @@ import CardBoxNotifications from "@/Components/CardBoxNotifications.vue";
 import CardBox from "@/Components/CardBox.vue";
 import CardBoxComponentEmpty from "@/Components/CardBoxComponentEmpty.vue";
 import notify from "@/scripts/notification_helpers.js";
+import { router } from '@inertiajs/vue3'
 
 const isSidebarOpen = ref(false);
 const isDarkMode = ref(false);
@@ -68,6 +69,13 @@ const deleteAllNotif = () => {
         loadData();
     });
 };
+
+const handleNotificationClick = (notifId, reservationId) => {
+    markNotif(notifId);
+    //inertia get route()
+    console.log(reservationId)
+    router.get(route('reservations.show', reservationId));
+}
 
 onMounted(() => {
     loadData();
@@ -270,9 +278,9 @@ const navItems = [
                                                 >
                                                     <button
                                                         type="button"
-                                                        @click.prevent="
-                                                            markNotif(
-                                                                notification.id
+                                                        @click="
+                                                            handleNotificationClick(
+                                                                notification.id, notification.data.reservation
                                                             )
                                                         "
                                                         class="flex-grow text-left"

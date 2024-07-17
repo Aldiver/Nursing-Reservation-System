@@ -241,11 +241,7 @@ watchEffect(() => {
         console.log("Unavailable Options:", unavailableOptions);
         unavailableOptionsState.value = unavailableOptions;
         // Remove any options from form.options that are found in unavailableOptions
-        for (const optionId of unavailableOptions) {
-            if (form.options.includes(optionId)) {
-                form.options = form.options.filter((id) => id !== optionId);
-            }
-        }
+        form.options = form.options.filter(option => !unavailableOptions.includes(option.id));
     });
 });
 </script>

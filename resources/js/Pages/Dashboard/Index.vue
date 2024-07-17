@@ -9,7 +9,7 @@ import CardBox from "@/Components/CardBox.vue";
 import { Head } from "@inertiajs/vue3";
 import { ref } from "vue";
 import { mdiCalendarMonth } from "@mdi/js";
-// import IndexStaff from "./IndexStaff.vue";
+import IndexStaff from "@/Components/IndexStaff.vue";
 
 const styleStore = useStyleStore();
 
@@ -20,6 +20,7 @@ const props = defineProps({
     trendData: Object,
     incomingReservations: Object,
     reservations: Object,
+    user_reservations_count: Object,
 });
 
 const UserType = ref("");
@@ -78,8 +79,8 @@ const config = ref({
 
     <AuthenticatedLayout>
         <SectionMain>
-            <IndexAdmin :data="trendData" :incoming="incomingReservations" />
-            <!-- <IndexStaff /> -->
+            <IndexAdmin v-if="!$page.props.auth.roles.includes('Staff')" :data="trendData" :incoming="incomingReservations" />
+            <IndexStaff v-else :data="user_reservations_count"/>
             <SectionTitleLineWithButton
                 :icon="mdiCalendarMonth"
                 title="Calendar Schedules"
@@ -87,7 +88,7 @@ const config = ref({
                 <slot />
             </SectionTitleLineWithButton>
             <CardBox
-                v-if="!$page.props.auth.roles.includes('Staff')"
+                
                 class="calendar-container is-light-mode"
             >
                 <Qalendar

@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use Carbon\Carbon;
 use App\Models\Trend;
 use App\Models\Option;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -18,17 +19,21 @@ class DashboardController extends Controller
     {
 
         $user = auth()->user();
-        $role = $user->role; // Assuming the role is stored in a `role` attribute
-
-        if ($role === 'Staff') {
+        if ($user->hasRole('Staff')) {  
             $reservations = Reservation::with(['user', 'noter', 'approver', 'options'])
                 ->where('user_id', $user->id)
-                ->where('isApproved', true)
                 ->get();
-
+            
+                $reservationsByStatus = [
+                    'pendingApproval' => $reservations->where('status', 'Pending')->count(),
+                    'totalApproval' => $reservations->where('status', 'Approved')->count(),
+                    'rejectedApproval' => $reservations->where('status', 'Rejected')->count(),
+                ];
+            
             // Return only the reservations related to the user
             return inertia('Dashboard/Index', [
-                'reservations' => $reservations,
+                'reservations' => $reservations->where('status', "Approved"),
+                'user_reservations_count'=> $reservationsByStatus,
             ]);
         }
 
@@ -38,11 +43,11 @@ class DashboardController extends Controller
         $currentWeekData = DashboardData::where('week_start_date', $currentWeek->toDateString())->first();
         $previousWeekData = DashboardData::where('week_start_date', $previousWeek->toDateString())->first();
 
-        $pendingApprovalCount = $currentWeekData->pending_approvals_count;
+        $pendingApprovalCount = $currentWeekData->pending_approvals_count ?? 0;
 
-        $recentReservationsCount = $currentWeekData->recent_reservations_count;
+        $recentReservationsCount = $currentWeekData->recent_reservations_count ?? 0;
 
-        $utilizationRate = $currentWeekData->venue_utilization_rate;
+        $utilizationRate = $currentWeekData->venue_utilization_rate ?? 0.0;
 
         $pendingApprovalTrend = $this->calculateTrend($pendingApprovalCount, $previousWeekData->pending_approvals_count);
         $recentReservationsTrend = $this->calculateTrend($recentReservationsCount, $previousWeekData->recent_reservations_count);
@@ -53,7 +58,7 @@ class DashboardController extends Controller
             'pendingApprovalTrend' => $pendingApprovalTrend,
             'recentReservationsCount' => $recentReservationsCount,
             'recentReservationsTrend' => $recentReservationsTrend,
-            'utilizationRate' => $utilizationRate,
+            'utilizationRate' => round($utilizationRate,2),
             'utilizationRateTrend' => $utilizationRateTrend,
         ];
 

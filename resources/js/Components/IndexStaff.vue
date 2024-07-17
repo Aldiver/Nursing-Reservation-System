@@ -12,7 +12,6 @@ import {
 
 const props = defineProps({
     data: Object,
-    incoming: Object,
 });
 </script>
 
@@ -29,31 +28,29 @@ const props = defineProps({
         <CardBoxWidget
             color="text-red-500"
             :icon="mdiTagCheckOutline"
-            :number="pendingApprovalCount"
+            :number="data.pendingApproval"
             label="Pending Approval"
             to=""
         />
         <CardBoxWidget
-            :trend="`${recentReservationsTrend.value} %`"
-            :trend-type="recentReservationsTrend.type"
+          
             color="text-green-500"
             :icon="mdiHistory"
-            :number="recentReservationsCount"
+            :number="data.totalApproval"
             label="Total Reservations"
             to=""
         />
         <CardBoxWidget
-            :trend="`${utilizationRateTrend.value} %`"
-            :trend-type="utilizationRateTrend.type"
+            
             color="text-blue-500"
             :icon="mdiPercentOutline"
-            :number="utilizationRate"
+            :number="data.rejectedApproval"
             label="Rejected Reservations"
             to=""
         />
     </div>
 
-    <SectionTitleLineWithButton
+    <!-- <SectionTitleLineWithButton
         :icon="mdiFormatListNumbered"
         title="Latest Reservations"
         main
@@ -72,5 +69,5 @@ const props = defineProps({
             :name="reservation.user.email"
             :account="reservation.user.name"
         />
-    </div>
+    </div> -->
 </template>

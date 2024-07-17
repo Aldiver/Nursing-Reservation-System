@@ -16,7 +16,8 @@ class DashboardDataSeeder extends Seeder
     {
         $startDate = Carbon::now()->startOfWeek()->subWeek();
         $dashboardData = DashboardData::where('week_start_date', $startDate)->first();
-
+        echo $startDate;
+        
         if (!$dashboardData) {
             DashboardData::create([
                 'week_start_date' => $startDate,
