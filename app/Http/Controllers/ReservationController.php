@@ -172,7 +172,6 @@ class ReservationController extends Controller
             'purpose.*' => 'integer',
             'otherPurpose' => 'nullable|string',
             'options' => 'required|array',
-            // 'options.*' => 'integer|exists:options,id',
             'pax' => 'nullable|array',
             'pax.*' => 'nullable|integer',
         ];
@@ -311,9 +310,12 @@ class ReservationController extends Controller
 
         $conflictingOptions = array_values($conflictingOptions);
 
+
+        //display conflict warning in Edit Page
         if($conflictingOptions) {
             session()->flash('error', __(implode(', ', array_values($conflictingOptions)) . ' removed from selection list. (Conflicting schedules)'));
         }
+
         return inertia('Reservation/Edit', [
             'reservation' => $reservation,
             'venues' => $venues,
@@ -330,7 +332,6 @@ class ReservationController extends Controller
             'purpose' => 'required|array',
             'otherPurpose' => 'nullable|string',
             'options' => 'required|array',
-            // 'options.*' => 'integer|exists:options,id',
             'pax' => 'nullable|array',
             'pax.*' => 'nullable|integer',
         ];
@@ -416,6 +417,7 @@ class ReservationController extends Controller
             event(new ReservationEvent($auth_user, $owner->name, $reservation->id, NotificationTypes::updated));
         }
 
+        //updates reservation to the database
         $reservation->update([
             'date' => $date,
             'start_time' => $start_time,
@@ -482,8 +484,6 @@ class ReservationController extends Controller
             'approved_by' => auth()->id(),
             'status' => 'Approved'
         ]);
-        // $reservation->update(['approved_by' => auth()->id()]);
-        // $reservation->update->status = 'Approved';
 
         $auth_user = auth()->user();
         $owner = User::find($reservation->user_id);
