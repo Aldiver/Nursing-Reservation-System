@@ -257,6 +257,7 @@ class ReservationController extends Controller
             'approved_by' => $approver?->id,
             'purpose' => $toStore,
             'remarks' => $remarks,
+            'status' => "Pending"
         ]);
 
         // Attach options with pax to the reservation
@@ -476,8 +477,13 @@ class ReservationController extends Controller
     public function approve(Reservation $reservation)
     {
         $this->authorize('approver', $reservation);
-        $reservation->update(['isApproved' => !$reservation->isApproved]);
-        $reservation->update(['approved_by' => auth()->id()]);
+        $reservation->update([
+            'isApproved' => true,
+            'approved_by' => auth()->id(),
+            'status' => 'Approved'
+        ]);
+        // $reservation->update(['approved_by' => auth()->id()]);
+        // $reservation->update->status = 'Approved';
 
         $auth_user = auth()->user();
         $owner = User::find($reservation->user_id);

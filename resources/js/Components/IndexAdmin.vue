@@ -7,6 +7,7 @@ import {
     mdiTagCheckOutline,
     mdiHistory,
     mdiPercentOutline,
+    mdiFormatListNumbered,
 } from "@mdi/js";
 
 const props = defineProps({
@@ -63,6 +64,14 @@ const {
             to=""
         />
     </div>
+
+    <SectionTitleLineWithButton
+        :icon="mdiFormatListNumbered"
+        title="Upcoming Reservations"
+        main
+    >
+        <slot />
+    </SectionTitleLineWithButton>
 
     <div class="flex flex-col justify-between">
         <CardBoxTransaction

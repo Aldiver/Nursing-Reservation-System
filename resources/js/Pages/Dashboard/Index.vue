@@ -9,6 +9,7 @@ import CardBox from "@/Components/CardBox.vue";
 import { Head } from "@inertiajs/vue3";
 import { ref } from "vue";
 import { mdiCalendarMonth } from "@mdi/js";
+// import IndexStaff from "./IndexStaff.vue";
 
 const styleStore = useStyleStore();
 
@@ -20,6 +21,8 @@ const props = defineProps({
     incomingReservations: Object,
     reservations: Object,
 });
+
+const UserType = ref("");
 
 // Function to format time as required
 const formatTime = (date, time) => {
@@ -76,13 +79,17 @@ const config = ref({
     <AuthenticatedLayout>
         <SectionMain>
             <IndexAdmin :data="trendData" :incoming="incomingReservations" />
+            <!-- <IndexStaff /> -->
             <SectionTitleLineWithButton
                 :icon="mdiCalendarMonth"
                 title="Calendar Schedules"
             >
                 <slot />
             </SectionTitleLineWithButton>
-            <CardBox class="calendar-container is-light-mode">
+            <CardBox
+                v-if="!$page.props.auth.roles.includes('Staff')"
+                class="calendar-container is-light-mode"
+            >
                 <Qalendar
                     class="bg-gray-200 text-slate-900"
                     :events="events"

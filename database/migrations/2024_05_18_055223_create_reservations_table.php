@@ -20,6 +20,7 @@ return new class () extends Migration {
             $table->boolean('isNoted')->default(false);
             $table->boolean('isApproved')->default(false);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->enum('status', ['Approved', 'Rejected', 'Pending', 'Deleted', 'Overdue'])->default('Pending');
             $table->foreignId('department_id')->nullable()->constrained('departments');
             $table->foreignId('noted_by')->nullable()->constrained('users');
             $table->foreignId('approved_by')->nullable()->constrained('users');
