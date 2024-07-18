@@ -62,7 +62,9 @@ Route::group([
     Route::resource('reservations', ReservationController::class);
     Route::resource('dashboard', DashboardController::class);
     Route::get('/note-reservation/{reservation}', 'ReservationController@note')->name('reservation.note');
+    Route::get('/reject-note-reservation/{reservation}', 'ReservationController@reject_noter')->name('reservation.reject_noter');
     Route::get('/approve-reservation/{reservation}', 'ReservationController@approve')->name('reservation.approve');
+    Route::get('/reject-approve-reservation/{reservation}', 'ReservationController@reject_approver')->name('reservation.reject_approver');
 });
 
 require __DIR__.'/auth.php';

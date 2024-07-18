@@ -17,13 +17,25 @@ class ReservationController extends Controller
     {
         $this->authorizeResource(Reservation::class, 'reservation');
     }
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
         // Check permissions
         $canNote = $user->can('noter');
         $canApprove = $user->can('approver');
+
+        // Get filters from the request
+        $statusFilter = $request->input('status', []);
+        $sortByDateAsc = $request->input('sortByDateAsc', true);
+
+        // Fetch reservations based on permissions and apply filters
+        $query = Reservation::with(['user', 'noter', 'approver', 'options']);
+        if (!empty($statusFilter)) {
+            $query->whereIn('status', $statusFilter);
+        }
+    
+        $query->orderBy('date', $sortByDateAsc ? 'asc' : 'desc');
 
         // Fetch reservations based on permissions
         $reservations = ($canNote || $canApprove) ? Reservation::with(['user', 'noter', 'approver', 'options'])->get([
@@ -34,25 +46,27 @@ class ReservationController extends Controller
             'start_time',
             'end_time',
             'user_id',
+            'status',
             'noted_by',
             'approved_by',
             'isNoted',
             'isApproved'
         ]) : Reservation::with(['user', 'noter', 'approver'])
-                ->where('user_id', $user->id)
-                ->get([
-                    'id',
-                    'date',
-                    'purpose',
-                    'remarks',
-                    'start_time',
-                    'end_time',
-                    'user_id',
-                    'noted_by',
-                    'approved_by',
-                    'isNoted',
-                    'isApproved'
-                ]);
+            ->where('user_id', $user->id)
+            ->get([
+                'id',
+                'date',
+                'purpose',
+                'remarks',
+                'start_time',
+                'end_time',
+                'user_id',
+                'status',
+                'noted_by',
+                'approved_by',
+                'isNoted',
+                'isApproved'
+            ]);
 
         // Format the reservations and check for conflicts
         $formattedReservations = $reservations->map(function ($reservation) {
@@ -92,7 +106,7 @@ class ReservationController extends Controller
             $conflict = !empty($conflictingOptions);
 
             // auth()->user()->unreadNotifications->where('id', $id)->get();
-            if($conflict) {
+            if ($conflict) {
 
                 $owner = User::find($reservation->user_id);
                 $existingNotification = $owner->notifications()
@@ -100,10 +114,9 @@ class ReservationController extends Controller
                     ->where('data->notif_type', 'conflict')
                     ->first();
 
-                if(!$existingNotification) {
+                if (!$existingNotification) {
                     event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
                 }
-
             }
 
             return [
@@ -114,6 +127,7 @@ class ReservationController extends Controller
                 'options' => $options,
                 // 'options' => implode(', ', $options),
                 'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
+                'status' => $reservation->status,
                 'noted_by' => optional($reservation->noter)->name,
                 'approved_by' => optional($reservation->approver)->name,
                 'isNoted' => $reservation->isNoted,
@@ -125,7 +139,7 @@ class ReservationController extends Controller
 
         // Define columns
         $columns = [
-            // ['label' => 'ID', 'field' => 'id'],
+            ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Reserved By', 'field' => 'reserved_by'],
             ['label' => 'Purpose', 'field' => 'purpose'],
             // ['label' => 'Remarks', 'field' => 'remarks'],
@@ -133,6 +147,7 @@ class ReservationController extends Controller
             ['label' => 'Reservation Date', 'field' => 'reservation_date'],
             ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
             ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
+            ['label' => 'Status', 'field' => 'status'],
         ];
 
         // Define permissions
@@ -206,7 +221,7 @@ class ReservationController extends Controller
         ];
         // Concatenate purposeType and materials for remarks
         $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
-            ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' .$validatedData['materials']
+            ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' . $validatedData['materials']
             : '';
 
         // Convert times to 24-hour format
@@ -264,7 +279,6 @@ class ReservationController extends Controller
             return [
                 $option['id'] => ['pax' => $validatedData['pax'][$option['id']] ?? null]
             ];
-
         })->toArray();
 
         // Attach the options with the reservation
@@ -295,7 +309,7 @@ class ReservationController extends Controller
         // Check if the reservation is approved and if the authenticated user has permission to edit
         if ($reservation->isApproved && Gate::denies('approver')) {
             return redirect()->back()
-                             ->with('message', __('Only approver can edit this Reservation. Contact administrator for details.'));
+                ->with('message', __('Only approver can edit this Reservation. Contact administrator for details.'));
         }
 
         // Load venues with their options to populate the edit form
@@ -312,7 +326,7 @@ class ReservationController extends Controller
 
 
         //display conflict warning in Edit Page
-        if($conflictingOptions) {
+        if ($conflictingOptions) {
             session()->flash('error', __(implode(', ', array_values($conflictingOptions)) . ' removed from selection list. (Conflicting schedules)'));
         }
 
@@ -367,7 +381,7 @@ class ReservationController extends Controller
         ];
         // Concatenate purposeType and materials for remarks
         $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
-            ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' .$validatedData['materials']
+            ? 'Purpose Type: ' . $validatedData['purposeType'] . "\n\n" . 'Materials Needed:' . $validatedData['materials']
             : '';
 
         // Convert times to 24-hour format
@@ -413,7 +427,7 @@ class ReservationController extends Controller
         $auth_user = auth()->user();
         $owner = User::find($reservation->user_id);
 
-        if($auth_user->id != $reservation->user_id) {
+        if ($auth_user->id != $reservation->user_id) {
             event(new ReservationEvent($auth_user, $owner->name, $reservation->id, NotificationTypes::updated));
         }
 
@@ -435,12 +449,11 @@ class ReservationController extends Controller
 
         $reservation->delete();
 
-        if($auth_user->id != $reservation->user_id) {
+        if ($auth_user->id != $reservation->user_id) {
             event(new ReservationEvent($auth_user, $owner->name, $reservation->id, NotificationTypes::deleted));
         }
 
         return redirect()->route('reservations.index')->with('message', __('Reservation deleted successfully'));
-
     }
 
     public function note(Reservation $reservation)
@@ -475,6 +488,32 @@ class ReservationController extends Controller
         return redirect()->route('reservations.index');
     }
 
+    public function reject_noter(Reservation $reservation)
+    {
+        // Authorize the action
+        $this->authorize('noter', $reservation);
+
+        // Check if the reservation is already noted and redirect if true
+        if ($reservation->isNoted && $reservation->noted_by != null) {
+            return redirect()->route('reservations.index')->with('message', __("Reservation with id {$reservation->id} already noted"));
+        }
+
+        // Update reservation's noted status and noted_by fields
+        $reservation->update([
+            'status' => "Rejected",
+        ]);
+
+        $authUser = auth()->user();
+        $owner = $reservation->user;
+
+        // Trigger event for the owner if they are not the one noting the reservation
+        if ($owner->id != $authUser->id) {
+            event(new ReservationEvent($owner, $authUser->name, $reservation->id, NotificationTypes::notify_noted));
+        }
+
+        return redirect()->route('reservations.index');
+    }
+
 
     public function approve(Reservation $reservation)
     {
@@ -493,18 +532,36 @@ class ReservationController extends Controller
         return redirect()->route('reservations.index');
     }
 
+    public function reject_approver(Reservation $reservation)
+    {
+        $this->authorize('approver', $reservation);
+        $reservation->update([
+            'isNoted' => false,
+            'noted_by' => null,
+            'approved_by' => null,
+            'status' => 'Rejected'
+        ]);
+
+        $auth_user = auth()->user();
+        $owner = User::find($reservation->user_id);
+
+        // event(new ReservationEvent($owner, $auth_user->name, $reservation->id, NotificationTypes::approved));
+
+        return redirect()->route('reservations.index');
+    }
+
     public function getUnavailableOptions(Request $request)
     {
         $startTime = null;
         $endTime = null;
         $date = null;
-        if($request->start_time) {
+        if ($request->start_time) {
             $startTime = Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i');
         }
-        if($request->end_time) {
+        if ($request->end_time) {
             $endTime = Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i');
         }
-        if($request->date) {
+        if ($request->date) {
             $date = new \DateTime($request->date);
         }
 
@@ -518,7 +575,7 @@ class ReservationController extends Controller
     private function getUnavailableOptionsForTimeRange($date, $startTime, $endTime, $currentReservationId = null)
     {
         $query = Reservation::query()->where('isApproved', true)
-        ->whereDate('date', $date);
+            ->whereDate('date', $date);
 
         if ($date && $startTime && $endTime) {
             $query->where(function ($query) use ($startTime, $endTime) {
@@ -539,7 +596,6 @@ class ReservationController extends Controller
         foreach ($reservations as $reservation) {
             foreach ($reservation->options as $option) {
                 $unavailableOptions[] = $option->id;
-
             }
         }
         return $unavailableOptions;
