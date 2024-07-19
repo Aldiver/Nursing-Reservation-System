@@ -10,7 +10,7 @@ import {
     mdiCheckCircleOutline,
     mdiAlert,
     mdiEyeCircle,
-    mdiAlphaXCircleOutline
+    mdiAlphaXCircleOutline,
 } from "@mdi/js";
 import { useForm } from "@inertiajs/vue3";
 import IconRounded from "./IconRounded.vue";
@@ -90,13 +90,14 @@ const buttonToDisplay = (action, row) => {
 const getCellContent = (action, row) => {
     if (action === "note") {
         if (!props.permissions.note && !row["isNoted"]) return "Pending";
-        if (row["isNoted"]) return row["noted_by"];
+        if (row["isNoted"]) return `Accepted: ${row["noted_by"]}`;
     } else if (action === "approve") {
+        if (row["status"] === "Rejected") return "-";
         if (!row["isNoted"]) return "Pending";
         if (!props.permissions.approve && !row["isApproved"]) return "Pending";
-        if (row["isApproved"]) return row["approved_by"];
+        if (row["isApproved"]) return `Accepted: ${row["approved_by"]}`;
     }
-    return "";
+    return null;
 };
 
 const userIdToDelete = ref(0);
@@ -113,7 +114,13 @@ function destroy() {
 </script>
 
 <template>
-    <CardBoxModal v-model="isModalDangerActive" title="Please confirm" button="danger" has-cancel @confirm="destroy">
+    <CardBoxModal
+        v-model="isModalDangerActive"
+        title="Please confirm"
+        button="danger"
+        has-cancel
+        @confirm="destroy"
+    >
         <p>Are you sure you want to delete this item?</p>
     </CardBoxModal>
 
@@ -122,7 +129,11 @@ function destroy() {
             <thead>
                 <tr>
                     <!-- <th /> -->
-                    <th v-for="column in columns" :key="column.field" :class="column.class">
+                    <th
+                        v-for="column in columns"
+                        :key="column.field"
+                        :class="column.class"
+                    >
                         {{ column.label }}
                     </th>
                     <th v-if="permissions.edit || permissions.delete" />
@@ -135,37 +146,76 @@ function destroy() {
                     @checked="checked($event, row)"
                 /> -->
                     <!-- <td>{{ index + 1 + currentPage * 5 }}</td> -->
-                    <td v-for="column in columns" :key="column.field" :data-label="column.label">
+                    <td
+                        v-for="column in columns"
+                        :key="column.field"
+                        :data-label="column.label"
+                    >
                         <template v-if="column.action">
-                            <IconRounded v-if="row.conflict && !row.isApproved" color="warning" :icon="mdiAlert" small
-                                v-tooltip="`Conflict schedules for ${row['conflictData']}`
-                                    " />
-                            <div v-else-if="buttonToDisplay(column.action, row) && row.status !== 'Rejected'">
-                                <BaseButtons type="justify-start lg:justify-end" no-wrap>
-                                    <BaseButton :route-name="route(
-                                        `reservation.${column.action}`,
-                                        row.id
-                                    )
-                                        " color="success" preserve-state :icon="mdiCheckCircleOutline" small
-                                        v-tooltip="'Approve Reservation'" />
+                            <IconRounded
+                                v-if="
+                                    row.conflict &&
+                                    !row.isApproved &&
+                                    row.status !== 'Rejected'
+                                "
+                                color="warning"
+                                :icon="mdiAlert"
+                                small
+                                v-tooltip="
+                                    `Conflict schedules for ${row['conflictData']}`
+                                "
+                            />
+                            <div
+                                v-else-if="
+                                    buttonToDisplay(column.action, row) &&
+                                    row.status !== 'Rejected'
+                                "
+                            >
+                                <BaseButtons
+                                    type="justify-start lg:justify-end"
+                                    no-wrap
+                                >
+                                    <BaseButton
+                                        :route-name="
+                                            route(
+                                                `reservation.${column.action}`,
+                                                row.id
+                                            )
+                                        "
+                                        color="success"
+                                        preserve-state
+                                        :icon="mdiCheckCircleOutline"
+                                        small
+                                        v-tooltip="'Approve Reservation'"
+                                    />
 
-                                    <BaseButton :route-name="route(
-                                        `reservation.reject_${column.action}r`,
-                                        row.id
-                                    )" color="danger" :icon="mdiAlphaXCircleOutline" preserve-state small
-                                        v-tooltip="'Reject Reservation'" />
+                                    <BaseButton
+                                        :route-name="
+                                            route(
+                                                `reservation.reject_${column.action}r`,
+                                                row.id
+                                            )
+                                        "
+                                        color="danger"
+                                        :icon="mdiAlphaXCircleOutline"
+                                        preserve-state
+                                        small
+                                        v-tooltip="'Reject Reservation'"
+                                    />
                                 </BaseButtons>
-
                             </div>
 
                             <span v-else>
-                                {{ row.status === "Rejected" ? "-" : row.status }}
-                                <!-- {{ getCellContent(column.action, row) ?? row.status}} -->
+                                <!-- {{ row.status === "Rejected" ? "-" : row.status }} -->
+                                {{ getCellContent(column.action, row) ?? "-" }}
                             </span>
                         </template>
                         <template v-else>
                             <div v-if="Array.isArray(row[column.field])">
-                                <span v-for="(opt, idx) in row[column.field]" :key="idx">
+                                <span
+                                    v-for="(opt, idx) in row[column.field]"
+                                    :key="idx"
+                                >
                                     {{ opt }} <br />
                                 </span>
                             </div>
@@ -180,13 +230,31 @@ function destroy() {
                         </template>
                     </td>
                     <td class="before:hidden lg:w-1 whitespace-nowrap">
-                        <BaseButtons type="justify-start lg:justify-end" no-wrap>
-                            <BaseButton v-if="permissions.show" color="info" :icon="mdiEyeCircle"
-                                :href="route(routes.show, row.id)" small />
-                            <BaseButton v-if="permissions.edit" color="success" :icon="mdiTextBoxEdit"
-                                :href="route(routes.edit, row.id)" small />
-                            <BaseButton v-if="permissions.delete" color="danger" :icon="mdiTrashCan" small
-                                @click="confirmDelete(row.id)" />
+                        <BaseButtons
+                            type="justify-start lg:justify-end"
+                            no-wrap
+                        >
+                            <BaseButton
+                                v-if="permissions.show"
+                                color="info"
+                                :icon="mdiEyeCircle"
+                                :href="route(routes.show, row.id)"
+                                small
+                            />
+                            <BaseButton
+                                v-if="permissions.edit"
+                                color="success"
+                                :icon="mdiTextBoxEdit"
+                                :href="route(routes.edit, row.id)"
+                                small
+                            />
+                            <BaseButton
+                                v-if="permissions.delete"
+                                color="danger"
+                                :icon="mdiTrashCan"
+                                small
+                                @click="confirmDelete(row.id)"
+                            />
                         </BaseButtons>
                     </td>
                 </tr>
@@ -195,8 +263,14 @@ function destroy() {
         <div class="p-3 lg:px-6 border-t border-gray-100 dark:border-slate-800">
             <BaseLevel>
                 <BaseButtons>
-                    <BaseButton v-for="page in pagesList" :key="page" :active="page === currentPage" :label="page + 1"
-                        small @click="currentPage = page" />
+                    <BaseButton
+                        v-for="page in pagesList"
+                        :key="page"
+                        :active="page === currentPage"
+                        :label="page + 1"
+                        small
+                        @click="currentPage = page"
+                    />
                 </BaseButtons>
                 <small>Page {{ currentPageHuman }} of {{ numPages }}</small>
             </BaseLevel>

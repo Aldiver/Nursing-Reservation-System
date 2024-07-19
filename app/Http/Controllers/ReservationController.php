@@ -34,7 +34,7 @@ class ReservationController extends Controller
         if (!empty($statusFilter)) {
             $query->whereIn('status', $statusFilter);
         }
-    
+
         $query->orderBy('date', $sortByDateAsc ? 'asc' : 'desc');
 
         // Fetch reservations based on permissions
@@ -468,7 +468,7 @@ class ReservationController extends Controller
 
         // Update reservation's noted status and noted_by fields
         $reservation->update([
-            'isNoted' => !$reservation->isNoted,
+            'isNoted' => true,
             'noted_by' => auth()->id()
         ]);
 
@@ -500,6 +500,7 @@ class ReservationController extends Controller
 
         // Update reservation's noted status and noted_by fields
         $reservation->update([
+            'isNoted' => false,
             'status' => "Rejected",
         ]);
 
@@ -574,7 +575,7 @@ class ReservationController extends Controller
 
     private function getUnavailableOptionsForTimeRange($date, $startTime, $endTime, $currentReservationId = null)
     {
-        $query = Reservation::query()->where('isApproved', true)
+        $query = Reservation::query()->where('isNoted', true)
             ->whereDate('date', $date);
 
         if ($date && $startTime && $endTime) {
