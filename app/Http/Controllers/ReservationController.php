@@ -17,28 +17,40 @@ class ReservationController extends Controller
     {
         $this->authorizeResource(Reservation::class, 'reservation');
     }
-    public function index(Request $request)
+    public function index()
     {
         $user = auth()->user();
-
+    
         // Check permissions
         $canNote = $user->can('noter');
         $canApprove = $user->can('approver');
-
+    
         // Get filters from the request
-        $statusFilter = $request->input('status', []);
-        $sortByDateAsc = $request->input('sortByDateAsc', true);
+        $statusFilter = request()->input('status', []);
+        $filterByDate = request()->input('filterByDate');
+        $sortByTimeStart = request()->input('sortByTimeStart');
+        // dd($filterByDate);
 
         // Fetch reservations based on permissions and apply filters
         $query = Reservation::with(['user', 'noter', 'approver', 'options']);
-        if (!empty($statusFilter)) {
+        if ($statusFilter) {
             $query->whereIn('status', $statusFilter);
+            // dd($query);
+        }
+    
+        if ($filterByDate) {
+            $date = new \DateTime($filterByDate);
+            $query->whereDate('date', $filterByDate);
         }
 
-        $query->orderBy('date', $sortByDateAsc ? 'asc' : 'desc');
-
+        if ($sortByTimeStart === "true") {
+            $query->orderBy('start_time', 'asc');
+        } else {
+            $query->orderBy('start_time', 'desc');
+        }
+        
         // Fetch reservations based on permissions
-        $reservations = ($canNote || $canApprove) ? Reservation::with(['user', 'noter', 'approver', 'options'])->get([
+        $reservations = ($canNote || $canApprove) ? $query->get([
             'id',
             'date',
             'purpose',
@@ -51,81 +63,67 @@ class ReservationController extends Controller
             'approved_by',
             'isNoted',
             'isApproved'
-        ]) : Reservation::with(['user', 'noter', 'approver'])
-            ->where('user_id', $user->id)
-            ->get([
-                'id',
-                'date',
-                'purpose',
-                'remarks',
-                'start_time',
-                'end_time',
-                'user_id',
-                'status',
-                'noted_by',
-                'approved_by',
-                'isNoted',
-                'isApproved'
-            ]);
-
+        ]) : $query->where('user_id', $user->id)->get([
+            'id',
+            'date',
+            'purpose',
+            'remarks',
+            'start_time',
+            'end_time',
+            'user_id',
+            'status',
+            'noted_by',
+            'approved_by',
+            'isNoted',
+            'isApproved'
+        ]);
+    
         // Format the reservations and check for conflicts
         $formattedReservations = $reservations->map(function ($reservation) {
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
-
-            // dd($reservation->start_time, $reservation->end_time);
-
-
+    
             $options = $reservation->options->sortBy('id')->map(function ($option) {
                 return $option->pivot->pax ? "{$option->name} - ({$option->pivot->pax} pax)" : $option->name;
             })->values()->toArray();
-
-            // Format purpose
+    
             $purposeData = is_array($reservation->purpose) ? $reservation->purpose : json_decode($reservation->purpose, true);
-
-            // Extract purposes and others
             $purposes = $purposeData['purpose'] ?? [];
             $others = $purposeData['others'] ?? null;
-
-            // Combine purposes and others
             if ($others) {
                 $purposes[] = "others: $others";
             }
             $combinedPurpose = implode(', ', $purposes);
-
-            // Check for overlapping reservations
-            $allOptions = $reservation->options->pluck('name', 'id')->toArray();
-            // dd($options);
-            $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
-
-            $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
-                return in_array($key, $unavailableOptions);
-            }, ARRAY_FILTER_USE_KEY);
-
-            $conflictingOptions = array_values($conflictingOptions);
-            $conflict = !empty($conflictingOptions);
-
-            // auth()->user()->unreadNotifications->where('id', $id)->get();
-            if ($conflict) {
-
-                $owner = User::find($reservation->user_id);
-                $existingNotification = $owner->notifications()
-                    ->where('data->reservation', $reservation->id)
-                    ->where('data->notif_type', 'conflict')
-                    ->first();
-
-                if (!$existingNotification) {
-                    event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
+            $conflict = false;
+            $conflictingOptions = [];
+            
+            if(!$reservation->isApproved){
+                $allOptions = $reservation->options->pluck('name', 'id')->toArray();
+                $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
+                $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
+                    return in_array($key, $unavailableOptions);
+                }, ARRAY_FILTER_USE_KEY);
+                $conflictingOptions = array_values($conflictingOptions);
+                $conflict = !empty($conflictingOptions);
+        
+                if ($conflict) {
+                    $owner = User::find($reservation->user_id);
+                    $existingNotification = $owner->notifications()
+                        ->where('data->reservation', $reservation->id)
+                        ->where('data->notif_type', 'conflict')
+                        ->first();
+                    // dd($existingNotification);
+                    if (!$existingNotification) {
+                        event(new ReservationEvent($owner, 0, $reservation->id, NotificationTypes::conflict));
+                    }
                 }
             }
-
+            
             return [
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
                 'purpose' => $combinedPurpose,
-                // 'remarks' => $reservation->remarks,
                 'options' => $options,
-                // 'options' => implode(', ', $options),
                 'reservation_date' => $reservation->date . ' ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
                 'status' => $reservation->status,
                 'noted_by' => optional($reservation->noter)->name,
@@ -136,21 +134,18 @@ class ReservationController extends Controller
                 'conflictData' => implode(', ', $conflictingOptions),
             ];
         });
-
-        // Define columns
+    
         $columns = [
             ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Reserved By', 'field' => 'reserved_by'],
             ['label' => 'Purpose', 'field' => 'purpose'],
-            // ['label' => 'Remarks', 'field' => 'remarks'],
             ['label' => 'Options', 'field' => 'options'],
             ['label' => 'Reservation Date', 'field' => 'reservation_date'],
-            ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
-            ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve', 'isConflict' => 'conflict', 'conflict_data' => 'conflicData'],
+            ['label' => 'Noted By', 'field' => 'noted_by', 'action' => 'note', 'isConflict' => 'conflict', 'conflict_data' => 'conflictData'],
+            ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve', 'isConflict' => 'conflict', 'conflict_data' => 'conflictData'],
             ['label' => 'Status', 'field' => 'status'],
         ];
-
-        // Define permissions
+    
         $permissions = [
             'show' => $user->can("show"),
             'edit' => $user->can('edit'),
@@ -158,13 +153,15 @@ class ReservationController extends Controller
             'note' => $canNote,
             'approve' => $canApprove,
         ];
-
+    
         return inertia('Reservation/Index', [
             'reservations' => $formattedReservations,
             'columns' => $columns,
             'permissions' => $permissions,
+            'sotr' => $sortByTimeStart
         ]);
     }
+    
 
     public function create()
     {
@@ -240,7 +237,7 @@ class ReservationController extends Controller
             }
         } else {
             // If it's a weekday (Monday to Friday)
-            if (!($request->start_time >= '07:00' && $request->end_time <= '16:00')) {
+            if (!($start_time >= '07:00' && $end_time <= '16:00')) {
                 // Only allow reservations on weekdays from 7 AM to 4 PM
                 return back()->withErrors(['date' => 'Reservations are only allowed on weekdays from 7 AM to 4 PM.']);
             }
