@@ -14,6 +14,7 @@ import BaseDivider from "@/Components/BaseDivider.vue";
 import BaseButton from "@/Components/BaseButton.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import { mdiInvoiceTextClock } from "@mdi/js";
+import ToastMessage from "@/Components/ToastMessage.vue";
 
 const props = defineProps({
     user: Object,
@@ -188,6 +189,11 @@ watchEffect(() => {
         }
     });
 });
+
+const reservations = [
+  { schedule: 'Meeting', start_time: '10:00 AM', end_time: '11:00 AM', conflictOptions: 'Reschedule' },
+  { schedule: 'Workshop', start_time: '01:00 PM', end_time: '03:00 PM', conflictOptions: 'Cancel' },
+];
 </script>
 
 <template>
@@ -205,6 +211,7 @@ watchEffect(() => {
                         <Link href="/reservations">Back</Link>
                     </PrimaryButton>
                 </SectionTitleLineWithButton>
+                <ToastMessage :displayDate="form.date" :conflictReservations="reservations" />
 
                 <CardBox
                     is-form
