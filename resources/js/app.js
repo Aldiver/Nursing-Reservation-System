@@ -2,6 +2,7 @@ import "./bootstrap";
 import "../css/app.css";
 import "../css/main.css";
 import "floating-vue/dist/style.css";
+import "vue3-toastify/dist/index.css";
 
 import { createPinia } from "pinia";
 import { useStyleStore } from "@/stores/style.js";
@@ -13,6 +14,7 @@ import { createInertiaApp } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
 import FloatingVue from "floating-vue";
+import Notifications from "notiwind";
 
 const appName = import.meta.env.VITE_APP_NAME || "ADZU NURSING RESERVATION";
 
@@ -30,6 +32,7 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(FloatingVue)
+            .use(Notifications)
             .mount(el);
     },
     progress: {

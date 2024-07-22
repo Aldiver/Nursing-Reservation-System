@@ -15,6 +15,7 @@ import BaseButton from "@/Components/BaseButton.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import { mdiInvoiceTextClock } from "@mdi/js";
 import ToastMessage from "@/Components/ToastMessage.vue";
+import { notify } from "notiwind";
 
 const props = defineProps({
     user: Object,
@@ -174,26 +175,41 @@ const fetchUnavailableOptions = async () => {
     }
 };
 
-const unavailableOptionsState = ref([]);
+const unavailableOptionsState = ref({
+    unavailableOptions: [],
+    conflictReservation: [],
+});
 
 // Watch changes in date, start_time, end_time to fetch unavailable options
 watchEffect(() => {
     fetchUnavailableOptions().then((unavailableOptions) => {
-        console.log("Unavailable Options:", unavailableOptions);
         unavailableOptionsState.value = unavailableOptions;
         // Remove any options from form.options that are found in unavailableOptions
-        for (const optionId of unavailableOptions) {
+        for (const option of unavailableOptions.unavailableOptions) {
+            const optionId = option.id || option; // Handle both object and primitive cases
             if (form.options.includes(optionId)) {
                 form.options = form.options.filter((id) => id !== optionId);
             }
         }
+        // for (const optionId of unavailableOptions.unavailableOptions) {
+        //     if (form.options.includes(optionId)) {
+        //         form.options = form.options.filter((id) => id !== optionId);
+        //     }
+        // }
     });
 });
 
-const reservations = [
-  { schedule: 'Meeting', start_time: '10:00 AM', end_time: '11:00 AM', conflictOptions: 'Reschedule' },
-  { schedule: 'Workshop', start_time: '01:00 PM', end_time: '03:00 PM', conflictOptions: 'Cancel' },
-];
+const toast = () =>
+    notify(
+        {
+            title: "Success",
+            text: "Your account was registered!",
+            conflictReservation:
+                unavailableOptionsState.value.conflictReservation,
+            date: form.date,
+        },
+        4000
+    ); // 4s
 </script>
 
 <template>
@@ -201,6 +217,41 @@ const reservations = [
         <Head title="Create Reservation" />
 
         <AuthenticatedLayout>
+            <notificationGroup>
+                <div
+                    class="fixed z-50 inset-0 flex px-4 py-6 pointer-events-none p-6 items-start justify-end"
+                >
+                    <div class="max-w-sm w-full">
+                        <notification v-slot="{ notifications }">
+                            <div
+                                class="flex max-w-sm w-full mx-auto bg-white shadow-md rounded-lg overflow-hidden mt-4"
+                                v-for="notification in notifications"
+                                :key="notification.id"
+                            >
+                                <ToastMessage
+                                    :displayDate="notification.date"
+                                    :conflictReservations="
+                                        notification.conflictReservation
+                                    "
+                                />
+                            </div>
+                        </notification>
+                    </div>
+                </div>
+            </notificationGroup>
+            <!-- <div
+                class="z-50 fixed flex flex-col-reverse px-4 rounded-lg shadow right-5 bottom-0"
+            >
+                <ToastMessage
+                    :show="
+                        unavailableOptionsState.conflictReservation.length > 0
+                    "
+                    :displayDate="form.date"
+                    :conflictReservations="
+                        unavailableOptionsState.conflictReservation
+                    "
+                />
+            </div> -->
             <SectionMain>
                 <SectionTitleLineWithButton
                     :icon="mdiInvoiceTextClock"
@@ -211,8 +262,7 @@ const reservations = [
                         <Link href="/reservations">Back</Link>
                     </PrimaryButton>
                 </SectionTitleLineWithButton>
-                <ToastMessage :displayDate="form.date" :conflictReservations="reservations" />
-
+                <button @click="toast">Notify !</button>
                 <CardBox
                     is-form
                     @submit.prevent="form.post(route('reservations.store'))"
@@ -387,7 +437,7 @@ const reservations = [
                                             v-model="form.options"
                                             class="mr-2"
                                             :disabled="
-                                                unavailableOptionsState.includes(
+                                                unavailableOptionsState.unavailableOptions?.includes(
                                                     option.id
                                                 )
                                             "
@@ -407,7 +457,7 @@ const reservations = [
                                             "
                                             :class="{
                                                 'line-through text-red-500':
-                                                    unavailableOptionsState.includes(
+                                                    unavailableOptionsState.unavailableOptions?.includes(
                                                         option.id
                                                     ),
                                             }"

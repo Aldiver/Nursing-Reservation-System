@@ -20,11 +20,11 @@ class ReservationController extends Controller
     public function index()
     {
         $user = auth()->user();
-    
+
         // Check permissions
         $canNote = $user->can('noter');
         $canApprove = $user->can('approver');
-    
+
         // Get filters from the request
         $statusFilter = request()->input('status', []);
         $filterByDate = request()->input('filterByDate');
@@ -37,7 +37,7 @@ class ReservationController extends Controller
             $query->whereIn('status', $statusFilter);
             // dd($query);
         }
-    
+
         if ($filterByDate) {
             $date = new \DateTime($filterByDate);
             $query->whereDate('date', $filterByDate);
@@ -48,7 +48,7 @@ class ReservationController extends Controller
         } else {
             $query->orderBy('start_time', 'desc');
         }
-        
+
         // Fetch reservations based on permissions
         $reservations = ($canNote || $canApprove) ? $query->get([
             'id',
@@ -77,16 +77,16 @@ class ReservationController extends Controller
             'isNoted',
             'isApproved'
         ]);
-    
+
         // Format the reservations and check for conflicts
         $formattedReservations = $reservations->map(function ($reservation) {
             $startTime = \Carbon\Carbon::parse($reservation->start_time);
             $endTime = \Carbon\Carbon::parse($reservation->end_time);
-    
+
             $options = $reservation->options->sortBy('id')->map(function ($option) {
                 return $option->pivot->pax ? "{$option->name} - ({$option->pivot->pax} pax)" : $option->name;
             })->values()->toArray();
-    
+
             $purposeData = is_array($reservation->purpose) ? $reservation->purpose : json_decode($reservation->purpose, true);
             $purposes = $purposeData['purpose'] ?? [];
             $others = $purposeData['others'] ?? null;
@@ -96,8 +96,8 @@ class ReservationController extends Controller
             $combinedPurpose = implode(', ', $purposes);
             $conflict = false;
             $conflictingOptions = [];
-            
-            if(!$reservation->isApproved){
+
+            if(!$reservation->isApproved) {
                 $allOptions = $reservation->options->pluck('name', 'id')->toArray();
                 $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
                 $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
@@ -105,7 +105,7 @@ class ReservationController extends Controller
                 }, ARRAY_FILTER_USE_KEY);
                 $conflictingOptions = array_values($conflictingOptions);
                 $conflict = !empty($conflictingOptions);
-        
+
                 if ($conflict) {
                     $owner = User::find($reservation->user_id);
                     $existingNotification = $owner->notifications()
@@ -118,7 +118,7 @@ class ReservationController extends Controller
                     }
                 }
             }
-            
+
             return [
                 'id' => $reservation->id,
                 'reserved_by' => $reservation->user->name,
@@ -134,7 +134,7 @@ class ReservationController extends Controller
                 'conflictData' => implode(', ', $conflictingOptions),
             ];
         });
-    
+
         $columns = [
             ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Reserved By', 'field' => 'reserved_by'],
@@ -145,7 +145,7 @@ class ReservationController extends Controller
             ['label' => 'Approved By', 'field' => 'approved_by', 'action' => 'approve', 'isConflict' => 'conflict', 'conflict_data' => 'conflictData'],
             ['label' => 'Status', 'field' => 'status'],
         ];
-    
+
         $permissions = [
             'show' => $user->can("show"),
             'edit' => $user->can('edit'),
@@ -153,7 +153,7 @@ class ReservationController extends Controller
             'note' => $canNote,
             'approve' => $canApprove,
         ];
-    
+
         return inertia('Reservation/Index', [
             'reservations' => $formattedReservations,
             'columns' => $columns,
@@ -161,7 +161,7 @@ class ReservationController extends Controller
             'sotr' => $sortByTimeStart
         ]);
     }
-    
+
 
     public function create()
     {
@@ -596,6 +596,7 @@ class ReservationController extends Controller
                 $unavailableOptions[] = $option->id;
             }
         }
-        return $unavailableOptions;
+        // return $unavailableOptions;
+        return ["unavailableOptions" => $unavailableOptions, "conflictReservation" => $reservations];
     }
 }
