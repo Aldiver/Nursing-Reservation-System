@@ -219,12 +219,12 @@ const toast = () =>
         <AuthenticatedLayout>
             <notificationGroup>
                 <div
-                    class="fixed z-50 inset-0 flex px-4 py-6 pointer-events-none p-6 items-start justify-end"
+                    class="z-50 fixed flex flex-col-reverse rounded-lg shadow right-5 bottom-0 items-start justify-end"
                 >
-                    <div class="max-w-sm w-full">
+                    <div class="w-full">
                         <notification v-slot="{ notifications }">
                             <div
-                                class="flex max-w-sm w-full mx-auto bg-white shadow-md rounded-lg overflow-hidden mt-4"
+                                class="flex w-full mx-auto shadow-md rounded-lg overflow-hidden"
                                 v-for="notification in notifications"
                                 :key="notification.id"
                             >

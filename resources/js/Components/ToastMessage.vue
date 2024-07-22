@@ -20,12 +20,12 @@ const props = defineProps({
         leave-active-class="animate-fade-out"
     >
         <div
-            class="z-50 fixed flex items-center p-4 space-x-4 rounded-lg shadow right-5"
+            class="z-50 w-full items-center space-x-4 rounded-lg shadow right-5"
             role="alert"
         >
             <div
                 id="toast-danger"
-                class="border border-gray-600 flex flex-col items-start w-full p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
+                class="border border-gray-600 flex flex-col items-start w-full p-4 mb-4 text-gray-500 rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
                 role="alert"
             >
                 <div class="flex items-center w-full">
@@ -74,8 +74,8 @@ const props = defineProps({
                     <table class="conflict-table w-full">
                         <thead class="custom-table-header">
                             <tr>
-                                <th class="whitespace-nowrap">ID</th>
-                                <th class="whitespace-nowrap">Schedule</th>
+                                <th class="whitespace-nowrap">User ID</th>
+                                <!-- <th class="whitespace-nowrap">Schedule</th> -->
                                 <th class="whitespace-nowrap">Time In</th>
                                 <th class="whitespace-nowrap">Time Out</th>
                                 <th class="whitespace-nowrap">
@@ -91,16 +91,16 @@ const props = defineProps({
                                 :key="index"
                             >
                                 <td class="whitespace-nowrap">
-                                    User ID: {{ reservation.user_id }}
+                                    ID: {{ reservation.user_id }}
                                 </td>
-                                <td class="whitespace-nowrap">
+                                <!-- <td class="whitespace-nowrap">
                                     <span
                                         v-for="(value, index) in reservation
                                             .purpose.purpose"
                                         :key="index"
                                         >{{ value }}<br
                                     /></span>
-                                </td>
+                                </td> -->
                                 <td class="whitespace-nowrap">
                                     {{ reservation.start_time }}
                                 </td>
