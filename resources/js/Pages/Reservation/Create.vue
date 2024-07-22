@@ -221,7 +221,7 @@ watch(
                     conflictReservation: newState.conflictReservation,
                     date: form.date,
                 },
-                4000
+                10000
             ); // 4s
         }
     }

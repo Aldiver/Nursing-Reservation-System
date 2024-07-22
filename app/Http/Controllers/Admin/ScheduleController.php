@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
+use Carbon\Carbon;
 
 class ScheduleController extends Controller
 {
@@ -14,10 +15,10 @@ class ScheduleController extends Controller
     public function index()
     {
         $user = auth()->user();
-
-        // Fetch only approved reservations
+        // Fetch only approved reservations for today
         $reservations = Reservation::with(['user'])
             ->where('isApproved', true)
+            ->where('date', Carbon::today())
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc')
             ->get([
@@ -25,9 +26,9 @@ class ScheduleController extends Controller
             ]);
 
         $formattedReservations = $reservations->map(function ($reservation) {
-            $date = \Carbon\Carbon::parse($reservation->date)->format('F j, Y');
-            $startTime = \Carbon\Carbon::parse($reservation->start_time)->format('g:i A');
-            $endTime = \Carbon\Carbon::parse($reservation->end_time)->format('g:i A');
+            $date = Carbon::parse($reservation->date)->format('F j, Y');
+            $startTime = Carbon::parse($reservation->start_time)->format('g:i A');
+            $endTime = Carbon::parse($reservation->end_time)->format('g:i A');
 
             return [
                 'id' => $reservation->id,
