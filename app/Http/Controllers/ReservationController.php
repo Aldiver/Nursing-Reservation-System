@@ -578,7 +578,7 @@ class ReservationController extends Controller
         if ($date && $startTime && $endTime) {
             $query->where(function ($query) use ($startTime, $endTime) {
                 $query->where(function ($subquery) use ($startTime, $endTime) {
-                    $subquery->where('start_time', '<=', $endTime)
+                    $subquery->where('start_time', '<', $endTime)
                         ->where('end_time', '>', $startTime);
                 });
             });
