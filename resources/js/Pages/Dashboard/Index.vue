@@ -59,7 +59,6 @@ const config = ref({
     week: {
         startsOn: "sunday",
         nDays: 7,
-        scrollToHour: 8,
     },
     locale: "en-PH", // Set locale to Philippines
     isSilent: true,
@@ -67,6 +66,10 @@ const config = ref({
         showTrailingAndLeadingDates: false,
     },
     showCurrentTime: true,
+    dayBoundaries: {
+        start: 6,
+        end: 18,
+    },
 });
 </script>
 
@@ -79,8 +82,12 @@ const config = ref({
 
     <AuthenticatedLayout>
         <SectionMain>
-            <IndexAdmin v-if="!$page.props.auth.roles.includes('Staff')" :data="trendData" :incoming="incomingReservations" />
-            <IndexStaff v-else :data="user_reservations_count"/>
+            <IndexAdmin
+                v-if="!$page.props.auth.roles.includes('Staff')"
+                :data="trendData"
+                :incoming="incomingReservations"
+            />
+            <IndexStaff v-else :data="user_reservations_count" />
             <SectionTitleLineWithButton
                 :icon="mdiCalendarMonth"
                 title="Calendar Schedules"
@@ -88,8 +95,7 @@ const config = ref({
                 <slot />
             </SectionTitleLineWithButton>
             <CardBox
-                
-                class="calendar-container is-light-mode"
+                class="calendar-container is-light-mode overflow-y-auto max-h-96"
             >
                 <Qalendar
                     class="bg-gray-200 text-slate-900"
