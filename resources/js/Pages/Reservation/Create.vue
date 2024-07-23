@@ -140,10 +140,6 @@ const endTimeOptions = computed(() => {
     });
 });
 
-
-
-
-
 // Function to fetch unavailable options from backend
 const fetchUnavailableOptions = async () => {
     try {
@@ -170,8 +166,8 @@ const unavailableOptionsState = ref({
 watch(
     () => form.date,
     (newDate) => {
-        form.start_time = '';
-        form.end_time = '';
+        form.start_time = "";
+        form.end_time = "";
         form.options = [];
     }
 );
@@ -181,10 +177,8 @@ watch(
     () => form.start_time,
     async (newStartTime) => {
         if (form.end_time && form.end_time <= newStartTime) {
-            form.end_time = '';
+            form.end_time = "";
         }
-        // const unavailableOptions = await fetchUnavailableOptions();
-        // updateUnavailableOptionsState(unavailableOptions);
     }
 );
 
@@ -216,186 +210,269 @@ watch(
         if (newState.unavailableOptions.length > 0) {
             notify(
                 {
-                    title: 'Conflict Detected',
-                    text: 'There are conflicts with your selected options!',
+                    title: "Conflict Detected",
+                    text: "There are conflicts with your selected options!",
                     conflictReservation: newState.conflictReservation,
                     date: form.date,
                 },
-                10000
+                15000
             ); // 4s
         }
     }
 );
-
-
-
-// // Watch changes in date, start_time, end_time to fetch unavailable options
-// watchEffect(() => {
-//     fetchUnavailableOptions().then((unavailableOptions) => {
-//         unavailableOptionsState.value = unavailableOptions;
-//         // Remove any options from form.options that are found in unavailableOptions
-//         for (const option of unavailableOptions.unavailableOptions) {
-//             const optionId = option.id || option; // Handle both object and primitive cases
-//             if (form.options.includes(optionId)) {
-//                 form.options = form.options.filter((id) => id !== optionId);
-//             }
-//         }
-//     });
-// });
-
-const toast = () =>
-    notify(
-        {
-            title: "Success",
-            text: "Your account was registered!",
-            conflictReservation:
-                unavailableOptionsState.value.conflictReservation,
-            date: form.date,
-        },
-        4000
-    ); // 4s
 </script>
 
 <template>
     <div>
-
         <Head title="Create Reservation" />
 
         <AuthenticatedLayout>
             <notificationGroup>
                 <div
-                    class="z-50 fixed flex flex-col-reverse rounded-lg shadow right-5 bottom-0 items-start justify-end">
+                    class="z-50 fixed flex flex-col-reverse rounded-lg shadow right-5 bottom-0 items-start justify-end"
+                >
                     <div class="w-full">
                         <notification v-slot="{ notifications }">
-                            <div class="flex w-full mx-auto shadow-md rounded-lg overflow-hidden"
-                                v-for="notification in notifications" :key="notification.id">
-                                <ToastMessage :displayDate="notification.date" :conflictReservations="notification.conflictReservation
-                                    " />
+                            <div
+                                class="flex w-full mx-auto shadow-md rounded-lg overflow-hidden"
+                                v-for="notification in notifications"
+                                :key="notification.id"
+                            >
+                                <ToastMessage
+                                    :displayDate="notification.date"
+                                    :conflictReservations="
+                                        notification.conflictReservation
+                                    "
+                                />
                             </div>
                         </notification>
                     </div>
                 </div>
             </notificationGroup>
-            <!-- <div
-                class="z-50 fixed flex flex-col-reverse px-4 rounded-lg shadow right-5 bottom-0"
-            >
-                <ToastMessage
-                    :show="
-                        unavailableOptionsState.conflictReservation.length > 0
-                    "
-                    :displayDate="form.date"
-                    :conflictReservations="
-                        unavailableOptionsState.conflictReservation
-                    "
-                />
-            </div> -->
             <SectionMain>
-                <SectionTitleLineWithButton :icon="mdiInvoiceTextClock" title="Create Reservation" main>
+                <SectionTitleLineWithButton
+                    :icon="mdiInvoiceTextClock"
+                    title="Create Reservation"
+                    main
+                >
                     <PrimaryButton class="ms-4">
                         <Link href="/reservations">Back</Link>
                     </PrimaryButton>
                 </SectionTitleLineWithButton>
                 <!-- <button @click="toast">Notify !</button> -->
-                <CardBox is-form @submit.prevent="form.post(route('reservations.store'))">
-                    <FormField label="Date" :class="{ 'text-red-400': form.errors.date }">
-                        <FormControl v-model="form.date" type="date" :error="form.errors.date">
-                            <div class="text-red-400 text-sm" v-if="form.errors.date">
+                <CardBox
+                    is-form
+                    @submit.prevent="form.post(route('reservations.store'))"
+                >
+                    <FormField
+                        label="Date"
+                        :class="{ 'text-red-400': form.errors.date }"
+                    >
+                        <FormControl
+                            v-model="form.date"
+                            type="date"
+                            :error="form.errors.date"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.date"
+                            >
                                 {{ form.errors.date }}
                             </div>
                         </FormControl>
                     </FormField>
                     <div class="mt-4 flex space-x-4">
-                        <FormField class="flex-1" label="Start Time"
-                            :class="{ 'text-red-400': form.errors.start_time }">
-                            <FormControl v-model="form.start_time" :options="startTimeOptions"
-                                :error="form.errors.start_time" :disabled="!form.date">
-                                <div class="text-red-400 text-sm" v-if="form.errors.start_time">
+                        <FormField
+                            class="flex-1"
+                            label="Start Time"
+                            :class="{ 'text-red-400': form.errors.start_time }"
+                        >
+                            <FormControl
+                                v-model="form.start_time"
+                                :options="startTimeOptions"
+                                :error="form.errors.start_time"
+                                :disabled="!form.date"
+                            >
+                                <div
+                                    class="text-red-400 text-sm"
+                                    v-if="form.errors.start_time"
+                                >
                                     {{ form.errors.start_time }}
                                 </div>
                             </FormControl>
                         </FormField>
-                        <FormField class="flex-1" label="End Time" :class="{ 'text-red-400': form.errors.end_time }">
-                            <FormControl v-model="form.end_time" :options="endTimeOptions" :error="form.errors.end_time"
-                                :disabled="!form.start_time">
-                                <div class="text-red-400 text-sm" v-if="form.errors.end_time">
+                        <FormField
+                            class="flex-1"
+                            label="End Time"
+                            :class="{ 'text-red-400': form.errors.end_time }"
+                        >
+                            <FormControl
+                                v-model="form.end_time"
+                                :options="endTimeOptions"
+                                :error="form.errors.end_time"
+                                :disabled="!form.start_time"
+                            >
+                                <div
+                                    class="text-red-400 text-sm"
+                                    v-if="form.errors.end_time"
+                                >
                                     {{ form.errors.end_time }}
                                 </div>
                             </FormControl>
                         </FormField>
                     </div>
-                    <FormField label="Purpose" :class="{ 'text-red-400': form.errors.purpose }" wrap-body>
-                        <FormCheckRadioGroup v-model="form.purpose" name="purpose" :options="purposeOptions" />
-                        <div class="text-red-400 text-sm" v-if="form.errors.purpose">
+                    <FormField
+                        label="Purpose"
+                        :class="{ 'text-red-400': form.errors.purpose }"
+                        wrap-body
+                    >
+                        <FormCheckRadioGroup
+                            v-model="form.purpose"
+                            name="purpose"
+                            :options="purposeOptions"
+                        />
+                        <div
+                            class="text-red-400 text-sm"
+                            v-if="form.errors.purpose"
+                        >
                             {{ form.errors.purpose }}
                         </div>
                     </FormField>
-                    <FormField label="Others" :class="{ 'text-red-400': form.errors.otherPurpose }">
-                        <FormControl v-model="form.otherPurpose" type="text" placeholder="Others"
-                            :error="form.errors.otherPurpose">
-                            <div class="text-red-400 text-sm" v-if="form.errors.otherPurpose">
+                    <FormField
+                        label="Others"
+                        :class="{ 'text-red-400': form.errors.otherPurpose }"
+                    >
+                        <FormControl
+                            v-model="form.otherPurpose"
+                            type="text"
+                            placeholder="Others"
+                            :error="form.errors.otherPurpose"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.otherPurpose"
+                            >
                                 {{ form.errors.otherPurpose }}
                             </div>
                         </FormControl>
                     </FormField>
-                    <FormField v-if="form.purpose.includes(2)" label="Procedure Type"
-                        :class="{ 'text-red-400': form.errors.purposeType }">
-                        <FormControl v-model="form.purposeType" type="text" placeholder="Procedure Type"
-                            :error="form.errors.purposeType" required>
-                            <div class="text-red-400 text-sm" v-if="form.errors.purposeType">
+                    <FormField
+                        v-if="form.purpose.includes(2)"
+                        label="Procedure Type"
+                        :class="{ 'text-red-400': form.errors.purposeType }"
+                    >
+                        <FormControl
+                            v-model="form.purposeType"
+                            type="text"
+                            placeholder="Procedure Type"
+                            :error="form.errors.purposeType"
+                            required
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.purposeType"
+                            >
                                 {{ form.errors.purposeType }}
                             </div>
                         </FormControl>
                     </FormField>
-                    <FormField v-if="form.purpose.includes(2)" label="Materials"
-                        :class="{ 'text-red-400': form.errors.materials }">
-                        <FormControl v-model="form.materials" type="textarea" placeholder="Materials"
-                            :error="form.errors.materials" required>
-                            <div class="text-red-400 text-sm" v-if="form.errors.materials">
+                    <FormField
+                        v-if="form.purpose.includes(2)"
+                        label="Materials"
+                        :class="{ 'text-red-400': form.errors.materials }"
+                    >
+                        <FormControl
+                            v-model="form.materials"
+                            type="textarea"
+                            placeholder="Materials"
+                            :error="form.errors.materials"
+                            required
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.materials"
+                            >
                                 {{ form.errors.materials }}
                             </div>
                         </FormControl>
                     </FormField>
                     <div class="mt-4">
-                        <h2 class="text-lg font-semibold mb-2" :class="{ 'text-red-400': form.errors.options }">
+                        <h2
+                            class="text-lg font-semibold mb-2"
+                            :class="{ 'text-red-400': form.errors.options }"
+                        >
                             Venue
                         </h2>
-                        <div class="text-red-400 text-sm flex-1" v-if="form.errors.options">
+                        <div
+                            class="text-red-400 text-sm flex-1"
+                            v-if="form.errors.options"
+                        >
                             {{ form.errors.options }}
                         </div>
-                        <FormField v-for="(venue, index) in props.venues" :key="index" :label="venue.name">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                                <div v-for="(option, oIndex) in venue.options" :key="oIndex">
+                        <FormField
+                            v-for="(venue, index) in props.venues"
+                            :key="index"
+                            :label="venue.name"
+                        >
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2"
+                            >
+                                <div
+                                    v-for="(option, oIndex) in venue.options"
+                                    :key="oIndex"
+                                >
                                     <div>
-                                        <input type="checkbox" :id="'option_' +
-                                            venue.id +
-                                            '_' +
-                                            oIndex
-                                            " :value="option" v-model="form.options" class="mr-2" :disabled="unavailableOptionsState.unavailableOptions?.includes(
-                                                option.id
-                                            )
-                                                " @change="
-                                                    handleOptionChange(
-                                                        option,
-                                                        $event
-                                                    )
-                                                    " />
-                                        <label :for="'option_' +
-                                            venue.id +
-                                            '_' +
-                                            oIndex
-                                            " :class="{
+                                        <input
+                                            type="checkbox"
+                                            :id="
+                                                'option_' +
+                                                venue.id +
+                                                '_' +
+                                                oIndex
+                                            "
+                                            :value="option"
+                                            v-model="form.options"
+                                            class="mr-2"
+                                            :disabled="
+                                                unavailableOptionsState.unavailableOptions?.includes(
+                                                    option.id
+                                                )
+                                            "
+                                            @change="
+                                                handleOptionChange(
+                                                    option,
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                        <label
+                                            :for="
+                                                'option_' +
+                                                venue.id +
+                                                '_' +
+                                                oIndex
+                                            "
+                                            :class="{
                                                 'line-through text-red-500':
                                                     unavailableOptionsState.unavailableOptions?.includes(
                                                         option.id
                                                     ),
-                                            }">
+                                            }"
+                                        >
                                             {{ option.name }}
                                         </label>
                                         <div v-if="option.with_pax">
-                                            <FormControl type="number" :max="option.max_pax"
-                                                v-if="isOptionSelected(option)" v-model="form.pax[option.id]"
-                                                class="mt-2 ml-4 p-2" placeholder="Enter number of people" />
-                                            <span class="ml-6 text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                            <FormControl
+                                                type="number"
+                                                :max="option.max_pax"
+                                                v-if="isOptionSelected(option)"
+                                                v-model="form.pax[option.id]"
+                                                class="mt-2 ml-4 p-2"
+                                                placeholder="Enter number of people"
+                                            />
+                                            <span
+                                                class="ml-6 text-xs text-gray-500 dark:text-slate-400 mt-1"
+                                            >
                                                 Maximum pax is
                                                 {{ option.max_pax }}
                                             </span>
@@ -408,8 +485,13 @@ const toast = () =>
                     <BaseDivider />
                     <template #footer>
                         <BaseButtons>
-                            <BaseButton type="submit" color="whiteDark" label="Submit"
-                                :class="{ 'opacity-25': form.processing }" :disabled="form.processing" />
+                            <BaseButton
+                                type="submit"
+                                color="whiteDark"
+                                label="Submit"
+                                :class="{ 'opacity-25': form.processing }"
+                                :disabled="form.processing"
+                            />
                         </BaseButtons>
                     </template>
                 </CardBox>

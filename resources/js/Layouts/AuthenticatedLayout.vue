@@ -22,7 +22,7 @@ import CardBoxNotifications from "@/Components/CardBoxNotifications.vue";
 import CardBox from "@/Components/CardBox.vue";
 import CardBoxComponentEmpty from "@/Components/CardBoxComponentEmpty.vue";
 import notify from "@/scripts/notification_helpers.js";
-import { router } from '@inertiajs/vue3'
+import { router } from "@inertiajs/vue3";
 
 const isSidebarOpen = ref(false);
 const isDarkMode = ref(false);
@@ -73,9 +73,9 @@ const deleteAllNotif = () => {
 const handleNotificationClick = (notifId, reservationId) => {
     markNotif(notifId);
     //inertia get route()
-    console.log(reservationId)
-    router.get(route('reservations.show', reservationId));
-}
+    console.log(reservationId);
+    router.get(route("reservations.show", reservationId));
+};
 
 onMounted(() => {
     loadData();
@@ -92,6 +92,13 @@ const navItems = [
         label: "Dashboard",
         children: [],
         icon: mdiViewDashboardOutline,
+    },
+    {
+        href: "admin.schedules.index",
+        active: false,
+        label: "Schedules",
+        children: [],
+        icon: mdiInvoiceTextClock,
     },
     {
         href: "#",
@@ -129,13 +136,6 @@ const navItems = [
         children: [],
         icon: mdiListBox,
     },
-    {
-        href: "admin.schedules.index",
-        active: false,
-        label: "Schedules",
-        children: [],
-        icon: mdiInvoiceTextClock,
-    },
 ];
 </script>
 
@@ -144,7 +144,7 @@ const navItems = [
         :class="{
             dark: styleStore.darkMode,
         }"
-        class="flex flex-row min-h-screen overflow-hidden"
+        class="flex flex-row max-h-screen overflow-hidden"
     >
         <div
             class="flex min-h-screen transition-position lg:w-auto bg-gray-200 dark:bg-slate-800 dark:text-slate-100"
@@ -182,7 +182,7 @@ const navItems = [
                                         )
                                             ? item.label === 'Reservations' ||
                                               item.label === 'Dashboard' ||
-                                              item.label === 'Schedules'
+                                              item.label === 'Schedule'
                                             : true
                                     "
                                     :item="item"
@@ -280,7 +280,10 @@ const navItems = [
                                                         type="button"
                                                         @click="
                                                             handleNotificationClick(
-                                                                notification.id, notification.data.reservation
+                                                                notification.id,
+                                                                notification
+                                                                    .data
+                                                                    .reservation
                                                             )
                                                         "
                                                         class="flex-grow text-left"
