@@ -11,8 +11,6 @@ import { mdiListBox, mdiAlertBoxOutline, mdiSortClockAscendingOutline } from "@m
 import { ref, watch } from "vue";
 import FormField from "@/Components/FormField.vue";
 import FormControl from "@/Components/FormControl.vue";
-import BaseIcon from "@/Components/BaseIcon.vue";
-import BaseButton from "@/Components/BaseButton.vue";
 
 const props = defineProps({
     reservations: Array,
@@ -26,7 +24,6 @@ const filterOptions = [
     "Approved",
     "Rejected",
     "Pending",
-    "Overdue"
 ];
 
 const form = useForm({

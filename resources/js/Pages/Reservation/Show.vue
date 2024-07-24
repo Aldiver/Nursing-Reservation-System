@@ -10,6 +10,7 @@ import { mdiOfficeBuildingMarkerOutline } from "@mdi/js";
 import NotificationBar from "@/Components/NotificationBar.vue";
 import { formatDate, formatTime } from "@/scripts/helpers";
 import BaseDivider from "@/Components/BaseDivider.vue";
+import BaseButton from "@/Components/BaseButton.vue";
 
 const props = defineProps({
     reservation: {
@@ -37,30 +38,26 @@ const reservation_data = ref({
 </script>
 
 <template>
+
     <Head title="Reservations" />
     <AuthenticatedLayout>
         <SectionMain>
-            <SectionTitleLineWithButton
-                :icon="mdiOfficeBuildingMarkerOutline"
-                title="Reservation"
-                main
-            >
+            <SectionTitleLineWithButton :icon="mdiOfficeBuildingMarkerOutline" title="Reservation" main>
                 <PrimaryButton class="ms-4">
                     <Link href="/reservations">Back</Link>
                 </PrimaryButton>
             </SectionTitleLineWithButton>
-            <NotificationBar
-                v-if="$page.props.flash.message"
-                color="success"
-                :icon="mdiAlertBoxOutline"
-            >
+            <NotificationBar v-if="$page.props.flash.message" color="success" :icon="mdiAlertBoxOutline">
                 {{ $page.props.flash.message }}
             </NotificationBar>
             <div class="py-12">
                 <CardBox class="mb-6" has-table>
-                    <label class="block font-bold p-4">
-                        Reservation Details</label
-                    >
+                    <div class="flex justify-between items-center p-4">
+                        <label class="font-bold">Reservation Details</label>
+                        <BaseButton v-if="reservation.status === 'Approved'" target="_blank" label="Preview PDF" color="lightDark"
+                            :href="route('reservation.preview', reservation.id)" />
+                    </div>
+
                     <table>
                         <thead>
                             <tr>
@@ -72,15 +69,11 @@ const reservation_data = ref({
                             <tr v-for="(value, index) in reservation_data">
                                 <td>{{ index }}</td>
                                 <td v-if="Array.isArray(value)">
-                                    <span
-                                        v-for="option in value"
-                                        :key="option.id"
-                                    >
+                                    <span v-for="option in value" :key="option.id">
                                         {{ option.name }}
                                         <span v-if="option.with_pax">
                                             | (Number of pax
-                                            {{ option.pivot.pax }})</span
-                                        >
+                                            {{ option.pivot.pax }})</span>
                                         <br />
                                     </span>
                                 </td>

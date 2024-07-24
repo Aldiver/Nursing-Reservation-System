@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use App\Constants\NotificationTypes;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReservationController extends Controller
 {
@@ -97,7 +98,7 @@ class ReservationController extends Controller
             $conflict = false;
             $conflictingOptions = [];
 
-            if(!$reservation->isApproved) {
+            if (!$reservation->isApproved) {
                 $allOptions = $reservation->options->pluck('name', 'id')->toArray();
                 $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
                 $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
@@ -598,5 +599,60 @@ class ReservationController extends Controller
         }
         // return $unavailableOptions;
         return ["unavailableOptions" => $unavailableOptions, "conflictReservation" => $reservations];
+    }
+
+    public function print(Reservation $reservation)
+    {
+        $pdf = Pdf::loadView('pdf.invoice', $reservation->toArray());
+        return $pdf->stream('invoice.pdf');
+    }
+
+    public function preview(Reservation $reservation)
+    {
+        // Check if the status is 'Approved'
+        if ($reservation->status !== 'Approved') {
+            return redirect()->back()->with('error', 'Reservation is not approved.');
+        }
+        
+        $reservation->load('user', 'noter', 'approver', 'options');
+
+        // Retrieve purpose data
+        $purposeData = $reservation->purpose;
+
+        // Extract data
+        $data1 = $purposeData['purpose'] ?? [];
+        $data2 = $purposeData['others'] ?? null;
+
+        // Convert array to comma-separated string
+        $purposeString = implode(', ', $data1);
+
+        // Append 'Others: ' if $data2 is not null
+        if ($data2) {
+            $purposeString .= ', Others: ' . $data2;
+        }
+
+        // Prepare data for the PDF
+        $data = [
+            'id' => $reservation->id,
+            'reserved_by' => $reservation->user->name,
+            'schedule' => "{$reservation->date} - {$reservation->start_time} - {$reservation->end_time}",
+            'options' => $reservation->options->map(function ($option) {
+                return $option->pivot->with_pax
+                    ? "{$option->name} ({$option->pivot->pax})"
+                    : $option->name;
+            })->implode(', '),
+            'purpose' => $purposeString,
+            'remarks' => $reservation->remarks,
+            'status' => $reservation->status,
+            'noted_by' => $reservation->noter->name,
+            'approved_by' => $reservation->approver->name,
+        ];
+
+        $pdf = Pdf::loadView('pdf-preview', $data);
+        $pdfContent = $pdf->setPaper('a4', 'portrait')->stream(); // Get the PDF content
+
+        return inertia('Reservation/Pdf', [
+            'pdfContent' => base64_encode($pdfContent), // Encode content for embedding
+        ]);
     }
 }

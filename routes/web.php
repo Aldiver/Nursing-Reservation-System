@@ -25,17 +25,13 @@ use App\Http\Controllers\Admin\ScheduleController;
 */
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    return Inertia::render('Auth/Login', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
 });
-
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -65,6 +61,8 @@ Route::group([
     Route::get('/reject-note-reservation/{reservation}', 'ReservationController@reject_noter')->name('reservation.reject_noter');
     Route::get('/approve-reservation/{reservation}', 'ReservationController@approve')->name('reservation.approve');
     Route::get('/reject-approve-reservation/{reservation}', 'ReservationController@reject_approver')->name('reservation.reject_approver');
+    Route::get('/print-reservation/{reservation}', 'ReservationController@print')->name('reservation.print');
+    Route::get('/reservations/{reservation}/preview','ReservationController@preview')->name('reservation.preview');
 });
 
 require __DIR__.'/auth.php';
