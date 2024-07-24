@@ -317,7 +317,7 @@ class ReservationController extends Controller
         $allOptions = $reservation->options->pluck('name', 'id', 'pax')->toArray();
         $unavailableOptions = $this->getUnavailableOptionsForTimeRange($reservation->date, $reservation->start_time, $reservation->end_time, $reservation->id);
         $conflictingOptions = array_filter($allOptions, function ($key) use ($unavailableOptions) {
-            return in_array($key, $unavailableOptions);
+            return in_array($key, $unavailableOptions['unavailableOptions']);
         }, ARRAY_FILTER_USE_KEY);
 
         $conflictingOptions = array_values($conflictingOptions);

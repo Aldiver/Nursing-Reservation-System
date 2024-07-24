@@ -15,6 +15,8 @@ import BaseDivider from "@/Components/BaseDivider.vue";
 import BaseButton from "@/Components/BaseButton.vue";
 import BaseButtons from "@/Components/BaseButtons.vue";
 import { mdiInvoiceTextClock, mdiAlertBoxOutline } from "@mdi/js";
+import ToastMessage from "@/Components/ToastMessage.vue";
+import { notify } from "notiwind";
 
 const props = defineProps({
     reservation: Object,
@@ -75,7 +77,6 @@ onMounted(() => {
         const { pivot, ...rest } = option;
         return rest;
     });
-    // fetchUnavailableOptions;
 });
 
 // Check if an option is selected
@@ -196,23 +197,23 @@ const endTimeOptions = computed(() => {
     });
 });
 
-watch(
-    () => form.date,
-    (newDate) => {
-        form.start_time = "";
-        form.end_time = "";
-        form.options = [];
-    }
-);
+// watch(
+//     () => form.date,
+//     (newDate) => {
+//         form.start_time = "";
+//         form.end_time = "";
+//         form.options = [];
+//     }
+// );
 
-watch(
-    () => form.start_time,
-    (newStartTime) => {
-        if (form.end_time && form.end_time <= newStartTime) {
-            form.end_time = "";
-        }
-    }
-);
+// watch(
+//     () => form.start_time,
+//     (newStartTime) => {
+//         if (form.end_time && form.end_time <= newStartTime) {
+//             form.end_time = "";
+//         }
+//     }
+// );
 
 // Function to fetch unavailable options from backend
 const fetchUnavailableOptions = async () => {
@@ -225,7 +226,6 @@ const fetchUnavailableOptions = async () => {
                 currentReservationId: props.reservation.id,
             },
         });
-
         return response.data.unavailableOptions;
     } catch (error) {
         console.error("Error fetching unavailable options:", error);
@@ -233,17 +233,73 @@ const fetchUnavailableOptions = async () => {
     }
 };
 
-const unavailableOptionsState = ref([]);
-
-// Watch changes in date, start_time, end_time to fetch unavailable options
-watchEffect(() => {
-    fetchUnavailableOptions().then((unavailableOptions) => {
-        console.log("Unavailable Options:", unavailableOptions);
-        unavailableOptionsState.value = unavailableOptions;
-        // Remove any options from form.options that are found in unavailableOptions
-        form.options = form.options.filter(option => !unavailableOptions.includes(option.id));
-    });
+const unavailableOptionsState = ref({
+    unavailableOptions: [],
+    conflictReservation: [],
 });
+
+// Watcher for form date changes
+watch(
+    () => form.date,
+    (newDate) => {
+        form.start_time = "";
+        form.end_time = "";
+        form.options = [];
+    }
+);
+
+// Watcher for form start_time changes
+watch(
+    () => form.start_time,
+    async (newStartTime) => {
+        if (form.end_time && form.end_time <= newStartTime) {
+            form.end_time = "";
+        }
+    }
+);
+
+// Watcher for form end_time changes
+watch(
+    () => form.end_time,
+    async (newEndTime) => {
+        const unavailableOptions = await fetchUnavailableOptions();
+        updateUnavailableOptionsState(unavailableOptions);
+    }
+);
+
+// Function to update the state and remove unavailable options from form options
+const updateUnavailableOptionsState = (unavailableOptions) => {
+    unavailableOptionsState.value = unavailableOptions;
+    // Remove any options from form.options that are found in unavailableOptions
+    // for (const option of unavailableOptions.unavailableOptions) {
+    //     const optionId = option.id || option; // Handle both object and primitive cases
+    //     if (form.options.includes(optionId)) {
+    //         form.options = form.options.filter((id) => id !== optionId);
+    //     }
+    // }
+
+    form.options = form.options.filter(
+        (option) => !unavailableOptions.unavailableOptions.includes(option.id)
+    );
+};
+
+// Watcher for unavailableOptionsState changes
+watch(
+    () => unavailableOptionsState.value,
+    (newState) => {
+        if (newState.unavailableOptions.length > 0) {
+            notify(
+                {
+                    title: "Conflict Detected",
+                    text: "There are conflicts with your selected options!",
+                    conflictReservation: newState.conflictReservation,
+                    date: form.date,
+                },
+                15000
+            ); // 4s
+        }
+    }
+);
 </script>
 
 <template>
@@ -251,6 +307,28 @@ watchEffect(() => {
         <Head title="Edit Reservation" />
 
         <AuthenticatedLayout>
+            <notificationGroup>
+                <div
+                    class="z-50 fixed flex flex-col-reverse rounded-lg shadow right-5 bottom-0 items-start justify-end"
+                >
+                    <div class="w-full">
+                        <notification v-slot="{ notifications }">
+                            <div
+                                class="flex w-full mx-auto shadow-md rounded-lg overflow-hidden"
+                                v-for="notification in notifications"
+                                :key="notification.id"
+                            >
+                                <ToastMessage
+                                    :displayDate="notification.date"
+                                    :conflictReservations="
+                                        notification.conflictReservation
+                                    "
+                                />
+                            </div>
+                        </notification>
+                    </div>
+                </div>
+            </notificationGroup>
             <SectionMain>
                 <SectionTitleLineWithButton
                     :icon="mdiInvoiceTextClock"
@@ -444,7 +522,7 @@ watchEffect(() => {
                                             v-model="form.options"
                                             class="mr-2"
                                             :disabled="
-                                                unavailableOptionsState.includes(
+                                                unavailableOptionsState.unavailableOptions?.includes(
                                                     option.id
                                                 )
                                             "
@@ -464,7 +542,7 @@ watchEffect(() => {
                                             "
                                             :class="{
                                                 'line-through text-red-500':
-                                                    unavailableOptionsState.includes(
+                                                    unavailableOptionsState.unavailableOptions?.includes(
                                                         option.id
                                                     ),
                                             }"

@@ -12,17 +12,17 @@ const props = defineProps({
     },
     api: {
         type: String,
-        default: "avataaars",
+        default: "initials/svg?seed",
     },
 });
 
 const avatar = computed(
     () =>
         props.avatar ??
-        `https://avatars.dicebear.com/api/${props.api}/${props.username.replace(
-            /[^a-z0-9]+/i,
+        `https://api.dicebear.com/9.x/${props.api}=${props.username.replace(
+            /[^a-z0-9]+/gi,
             "-"
-        )}.svg`
+        )}`
 );
 
 const username = computed(() => props.username);

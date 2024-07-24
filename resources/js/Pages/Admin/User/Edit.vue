@@ -37,12 +37,12 @@ const form = useForm({
 
 <template>
     <div>
-        <Head title="Create User" />
+        <Head title="Edit User" />
         <AuthenticatedLayout>
             <SectionMain>
                 <SectionTitleLineWithButton
                     :icon="mdiCardAccountDetails"
-                    title="Create Users"
+                    title="Edit Users"
                     main
                 >
                     <PrimaryButton class="ms-4">
