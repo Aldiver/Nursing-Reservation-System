@@ -49,9 +49,9 @@ class DashboardController extends Controller
 
         $utilizationRate = $currentWeekData->venue_utilization_rate ?? 0.0;
 
-        $pendingApprovalTrend = $this->calculateTrend($pendingApprovalCount, $previousWeekData->pending_approvals_count);
-        $recentReservationsTrend = $this->calculateTrend($recentReservationsCount, $previousWeekData->recent_reservations_count);
-        $utilizationRateTrend = $this->calculateTrend($utilizationRate / 100, $previousWeekData->venue_utilization_rate);
+        $pendingApprovalTrend = $this->calculateTrend($pendingApprovalCount, $previousWeekData->pending_approvals_count ?? 0);
+        $recentReservationsTrend = $this->calculateTrend($recentReservationsCount, $previousWeekData->recent_reservations_count ?? 0);
+        $utilizationRateTrend = $this->calculateTrend($utilizationRate / 100, $previousWeekData->venue_utilization_rate ?? 0.0);
 
         $trendData = [
             'pendingApprovalCount' => $pendingApprovalCount,
