@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Approval Slip</title>
     <link href="{{ asset('css/main.css') }}" rel="stylesheet">
@@ -105,42 +106,36 @@
 
         .signature {
             margin-top: 20px;
-        }
-
-        .signature table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .signature td {
+            display: flex;
+            border: 1px solid #e2e8f0;
             padding: 10px;
-        }
-
-        .signature .title {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-align: left;
-        }
-
-        .signature .name {
-            border-bottom: 1px solid #2d3748;
-            padding-bottom: 2px;
-            margin-top: 0;
-        }
-
-        .signature .position {
-            margin-top: 5px;
-            font-style: italic;
-            color: #4a5568;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .signature .noted {
-            text-align: left;
+            margin-left: 0;
         }
 
         .signature .approved {
-            text-align: right;
+            margin-left: 50%;
+        }
+
+        .signature .title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+
+        .signature .name {
+            margin: 0;
+            text-indent: 3.5em;
+        }
+
+        .signature .position {
+            margin: 0;
+            text-indent: 3.5em;
+            font-style: italic;
+            color: #4a5568;
         }
 
         .disclaimer {
@@ -151,6 +146,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -198,24 +194,21 @@
             <p>Issued on {{ date('F j, Y') }}</p>
         </div>
         <div class="signature">
-            <table>
-                <tr>
-                    <td class="noted">
-                        <p class="title">Noted by:</p>
-                        <p class="name">{{ $noted_by }}</p>
-                        <p class="position">{{ $noter_pos }}</p>
-                    </td>
-                    <td class="approved">
-                        <p class="title">Approved by:</p>
-                        <p class="name">{{ $approved_by }}</p>
-                        <p class="position">{{ $approver_pos }}</p>
-                    </td>
-                </tr>
-            </table>
+            <div class="noted">
+                <p class="title">Noted by:</p>
+                <p class="name"><u> {{ $noted_by }}</u></p>
+                <p class="position">{{ $noter_pos }}</p>
+            </div>
+            <div class="approved">
+                <p class="title">Approved by:</p>
+                <p class="name"><u> {{ $approved_by }}</u></p>
+                <p class="position">{{ $approver_pos }}</p>
+            </div>
         </div>
     </div>
     <div class="disclaimer">
         <i>This document has been automatically generated and is certified as accurate and valid by the authorized signatories. Any alterations or unauthorized use may invalidate the document's integrity.</i>
     </div>
 </body>
+
 </html>
