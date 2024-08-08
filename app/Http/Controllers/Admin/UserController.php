@@ -24,6 +24,7 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'position' => $user->position,
                 'contact_number' => $user->contact_number,
                 'role' => $user->roles->pluck('name')->implode(', '), // Retrieve roles
                 'created_at' => $user->created_at->toDateString(),
@@ -35,6 +36,7 @@ class UserController extends Controller
             // ['label' => 'ID', 'field' => 'id'],
             ['label' => 'Name', 'field' => 'name'],
             ['label' => 'Email', 'field' => 'email'],
+            ['label' => 'Position', 'field' => 'position'],
             ['label' => 'Contact Number', 'field' => 'contact_number'],
             ['label' => 'Role', 'field' => 'role'],
             ['label' => 'Created At', 'field' => 'created_at'],
@@ -83,6 +85,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'contact_number' => 'nullable|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
+            'position' => 'nullable|string|max:255',
             'department' => 'required|string|exists:departments,name',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'required|string|exists:roles,name',
@@ -93,6 +96,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'position' => $request->position,
             'contact_number' => $request->contact_number,
             'password' => Hash::make($request->password),
         ]);
@@ -146,6 +150,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'contact_number' => $user->contact_number,
                 'email' => $user->email,
+                'position' => $user->position,
                 'roles' => $user->roles->map(function ($role) {
                     return [
                         'id' => $role->id ?? null,
@@ -169,6 +174,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'contact_number' => 'nullable|string|max:255',
+            'position' => 'required|string|max:255',
             'role' => 'required|string|exists:roles,name',
             'department' => 'required|string|exists:departments,name',
         ]);

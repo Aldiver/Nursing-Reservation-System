@@ -28,6 +28,7 @@ const props = defineProps({
 const form = useForm({
     name: "",
     email: "",
+    position: "",
     contact_number: "",
     password: "",
     password_confirmation: "",
@@ -92,6 +93,24 @@ const form = useForm({
                         </FormControl></FormField
                     >
                     <FormField
+                        label="Position"
+                        :class="{ 'text-red-400': form.errors.position }"
+                    >
+                        <FormControl
+                            v-model="form.position"
+                            type="text"
+                            placeholder="Enter Position"
+                            :error="form.errors.position"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.position"
+                            >
+                                {{ form.errors.position }}
+                            </div>
+                        </FormControl></FormField
+                    >
+                    <FormField
                         label="Email"
                         :class="{ 'text-red-400': form.errors.email }"
                     >
@@ -109,6 +128,7 @@ const form = useForm({
                             </div>
                         </FormControl></FormField
                     >
+                    
                     <FormField
                         label="Department"
                         :class="{ 'text-red-400': form.errors.department }"

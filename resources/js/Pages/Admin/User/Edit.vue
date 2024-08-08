@@ -29,6 +29,7 @@ const props = defineProps({
 const form = useForm({
     name: props.user.name,
     email: props.user.email,
+    position: props.user.position,
     contact_number: props.user.contact_number,
     role: props.user.roles[0].label,
     department: props.user.department.label,
@@ -93,6 +94,24 @@ const form = useForm({
                         </FormControl></FormField
                     >
                     <FormField
+                        label="Position"
+                        :class="{ 'text-red-400': form.errors.position }"
+                    >
+                        <FormControl
+                            v-model="form.position"
+                            type="text"
+                            placeholder="Enter Position"
+                            :error="form.errors.position"
+                        >
+                            <div
+                                class="text-red-400 text-sm"
+                                v-if="form.errors.position"
+                            >
+                                {{ form.errors.position }}
+                            </div>
+                        </FormControl></FormField
+                    >
+                    <FormField
                         label="Email (Not Editable)"
                         :class="{ 'text-red-400': form.errors.email }"
                     >
@@ -111,6 +130,7 @@ const form = useForm({
                             </div>
                         </FormControl></FormField
                     >
+                    
                     <FormField
                         label="Department"
                         :class="{ 'text-red-400': form.errors.department }"

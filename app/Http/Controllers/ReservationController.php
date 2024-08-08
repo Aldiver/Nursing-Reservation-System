@@ -645,7 +645,9 @@ class ReservationController extends Controller
             'remarks' => $reservation->remarks,
             'status' => $reservation->status,
             'noted_by' => $reservation->noter->name,
+            'noter_pos' => $reservation->noter->position,
             'approved_by' => $reservation->approver->name,
+            'approver_pos' => $reservation->approver->position,
         ];
 
         $pdf = Pdf::loadView('pdf-preview', $data);

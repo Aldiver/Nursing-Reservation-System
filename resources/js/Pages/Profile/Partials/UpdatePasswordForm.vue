@@ -33,7 +33,7 @@ const updatePassword = () => {
             }
             if (form.errors.current_password) {
                 form.reset("current_password");
-                currentPasswordInput.value.focus();
+                // currentPasswordInput.value.focus();
             }
         },
     });

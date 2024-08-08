@@ -164,10 +164,11 @@
                 <tr>
                     <td>
                         <p class="title">Noted by: <span class="name">{{ $noted_by }}</span></p>
-                        
+                        <p><span class="name">{{ $noter_pos }}</span></p>
                     </td>
                     <td>
                         <p class="title">Approved by: <span class="name">{{ $approved_by }}</span></p>
+                        <p><span class="name">{{ $approver_pos }}</span></p>
                         
                     </td>
                 </tr>
