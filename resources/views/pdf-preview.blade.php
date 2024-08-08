@@ -203,10 +203,12 @@
                     <td class="noted">
                         <p class="title">Noted by:</p>
                         <p class="name">{{ $noted_by }}</p>
+                        <p class="position">{{ $noter_pos }}</p>
                     </td>
                     <td class="approved">
                         <p class="title">Approved by:</p>
                         <p class="name">{{ $approved_by }}</p>
+                        <p class="position">{{ $approver_pos }}</p>
                     </td>
                 </tr>
             </table>
