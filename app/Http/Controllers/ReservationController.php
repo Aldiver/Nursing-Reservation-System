@@ -630,15 +630,15 @@ class ReservationController extends Controller
         if ($data2) {
             $purposeString .= ', Others: ' . $data2;
         }
-
+        // dd($reservation);
         // Prepare data for the PDF
         $data = [
             'id' => $reservation->id,
             'reserved_by' => $reservation->user->name,
             'schedule' => "{$reservation->date} - {$reservation->start_time} - {$reservation->end_time}",
             'options' => $reservation->options->map(function ($option) {
-                return $option->pivot->with_pax
-                    ? "{$option->name} ({$option->pivot->pax})"
+                return $option->with_pax
+                    ? "{$option->name} ({$option->pivot->pax} pax)"
                     : $option->name;
             })->implode(', '),
             'purpose' => $purposeString,

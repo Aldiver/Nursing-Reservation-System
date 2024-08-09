@@ -162,6 +162,11 @@ const unavailableOptionsState = ref({
     conflictReservation: [],
 });
 
+const handleSubmit = () => {
+    form.post(route('reservations.store'), {
+        onBefore: () => form.options.sort((a, b) => a.id - b.id) ,
+    });
+}
 // Watcher for form date changes
 watch(
     () => form.date,
@@ -262,7 +267,7 @@ watch(
                 <!-- <button @click="toast">Notify !</button> -->
                 <CardBox
                     is-form
-                    @submit.prevent="form.post(route('reservations.store'))"
+                    @submit.prevent="handleSubmit"
                 >
                     <FormField
                         label="Date"
