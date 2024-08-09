@@ -219,7 +219,7 @@ class ReservationController extends Controller
         ];
         // Concatenate purposeType and materials for remarks
         $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
-            ? 'Purpose Type: ' . $validatedData['purposeType'] . ",\n\n" . 'Materials Needed:' . $validatedData['materials']
+            ? 'Procedure Type: ' . $validatedData['purposeType'] . ",\n\n" . 'Materials Needed:' . $validatedData['materials']
             : '';
 
         // Convert times to 24-hour format
@@ -379,7 +379,7 @@ class ReservationController extends Controller
         ];
         // Concatenate purposeType and materials for remarks
         $remarks = isset($validatedData['purposeType'], $validatedData['materials'])
-            ? 'Purpose Type: ' . $validatedData['purposeType'] . ",\n\n" . 'Materials Needed:' . $validatedData['materials']
+            ? 'Procedure Type: ' . $validatedData['purposeType'] . ",\n\n" . 'Materials Needed:' . $validatedData['materials']
             : '';
 
         // Convert times to 24-hour format
